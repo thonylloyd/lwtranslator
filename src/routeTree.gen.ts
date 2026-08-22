@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as JoinRouteImport } from './routes/join'
+import { Route as TranslatorRouteImport } from './routes/translator'
 import { Route as ListenCodeRouteImport } from './routes/listen.$code'
 
 const IndexRoute = IndexRouteImport.update({
@@ -23,6 +24,11 @@ const JoinRoute = JoinRouteImport.update({
   path: '/join',
   getParentRoute: () => rootRouteImport,
 } as any)
+const TranslatorRoute = TranslatorRouteImport.update({
+  id: '/translator',
+  path: '/translator',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ListenCodeRoute = ListenCodeRouteImport.update({
   id: '/listen/$code',
   path: '/listen/$code',
@@ -32,30 +38,34 @@ const ListenCodeRoute = ListenCodeRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/join': typeof JoinRoute
+  '/translator': typeof TranslatorRoute
   '/listen/$code': typeof ListenCodeRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/join': typeof JoinRoute
+  '/translator': typeof TranslatorRoute
   '/listen/$code': typeof ListenCodeRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/join': typeof JoinRoute
+  '/translator': typeof TranslatorRoute
   '/listen/$code': typeof ListenCodeRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/join' | '/listen/$code'
+  fullPaths: '/' | '/join' | '/translator' | '/listen/$code'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/join' | '/listen/$code'
-  id: '__root__' | '/' | '/join' | '/listen/$code'
+  to: '/' | '/join' | '/translator' | '/listen/$code'
+  id: '__root__' | '/' | '/join' | '/translator' | '/listen/$code'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   JoinRoute: typeof JoinRoute
+  TranslatorRoute: typeof TranslatorRoute
   ListenCodeRoute: typeof ListenCodeRoute
 }
 
@@ -75,6 +85,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof JoinRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/translator': {
+      id: '/translator'
+      path: '/translator'
+      fullPath: '/translator'
+      preLoaderRoute: typeof TranslatorRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/listen/$code': {
       id: '/listen/$code'
       path: '/listen/$code'
@@ -88,6 +105,7 @@ declare module '@tanstack/react-router' {
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   JoinRoute: JoinRoute,
+  TranslatorRoute: TranslatorRoute,
   ListenCodeRoute: ListenCodeRoute,
 }
 export const routeTree = rootRouteImport
