@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as JoinRouteImport } from './routes/join'
 import { Route as TranslatorRouteImport } from './routes/translator'
+import { Route as AdminIndexRouteImport } from './routes/admin/index'
 import { Route as ListenCodeRouteImport } from './routes/listen.$code'
 
 const IndexRoute = IndexRouteImport.update({
@@ -29,6 +30,11 @@ const TranslatorRoute = TranslatorRouteImport.update({
   path: '/translator',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AdminIndexRoute = AdminIndexRouteImport.update({
+  id: '/admin/',
+  path: '/admin/',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ListenCodeRoute = ListenCodeRouteImport.update({
   id: '/listen/$code',
   path: '/listen/$code',
@@ -40,12 +46,14 @@ export interface FileRoutesByFullPath {
   '/join': typeof JoinRoute
   '/translator': typeof TranslatorRoute
   '/listen/$code': typeof ListenCodeRoute
+  '/admin/': typeof AdminIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/join': typeof JoinRoute
   '/translator': typeof TranslatorRoute
   '/listen/$code': typeof ListenCodeRoute
+  '/admin': typeof AdminIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -53,13 +61,14 @@ export interface FileRoutesById {
   '/join': typeof JoinRoute
   '/translator': typeof TranslatorRoute
   '/listen/$code': typeof ListenCodeRoute
+  '/admin/': typeof AdminIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/join' | '/translator' | '/listen/$code'
+  fullPaths: '/' | '/join' | '/translator' | '/listen/$code' | '/admin/'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/join' | '/translator' | '/listen/$code'
-  id: '__root__' | '/' | '/join' | '/translator' | '/listen/$code'
+  to: '/' | '/join' | '/translator' | '/listen/$code' | '/admin'
+  id: '__root__' | '/' | '/join' | '/translator' | '/listen/$code' | '/admin/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -67,6 +76,7 @@ export interface RootRouteChildren {
   JoinRoute: typeof JoinRoute
   TranslatorRoute: typeof TranslatorRoute
   ListenCodeRoute: typeof ListenCodeRoute
+  AdminIndexRoute: typeof AdminIndexRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -92,6 +102,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof TranslatorRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/admin/': {
+      id: '/admin/'
+      path: '/admin'
+      fullPath: '/admin/'
+      preLoaderRoute: typeof AdminIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/listen/$code': {
       id: '/listen/$code'
       path: '/listen/$code'
@@ -107,6 +124,7 @@ const rootRouteChildren: RootRouteChildren = {
   JoinRoute: JoinRoute,
   TranslatorRoute: TranslatorRoute,
   ListenCodeRoute: ListenCodeRoute,
+  AdminIndexRoute: AdminIndexRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
