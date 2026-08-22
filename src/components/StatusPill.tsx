@@ -16,7 +16,7 @@ export function StatusPill({
     reconnecting: { label: "RECONNECTING", dot: "bg-ready", text: "text-ready", bg: "bg-ready/12" },
     simulated: { label: "SIMULATED", dot: "bg-muted-foreground", text: "text-muted-foreground", bg: "bg-muted" },
   };
-  const cfg = map[status] ?? map.offline!;
+  const cfg = map[status] ?? map["offline"]!;
   return (
     <span
       className={cn(
