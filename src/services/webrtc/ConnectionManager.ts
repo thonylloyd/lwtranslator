@@ -1,4 +1,5 @@
 import type { ConnectionQuality, ConnectionState } from "@/lib/types";
+import { conferenceRepository } from "@/services/data/conferenceStore";
 import { LocalServerService } from "@/services/local-server/LocalServerService";
 
 import { webRTCClient } from "./WebRTCClient";
@@ -11,6 +12,8 @@ export interface ConnectionSnapshot {
   /** True when no local server/SFU is present and figures are demonstration values. */
   simulated: boolean;
   serverHost: string | null;
+  /** Name reported by the venue server's /health endpoint. */
+  serverName: string | null;
 }
 
 type Subscriber = (snapshot: ConnectionSnapshot) => void;
@@ -22,6 +25,7 @@ const INITIAL: ConnectionSnapshot = {
   packetLoss: null,
   simulated: true,
   serverHost: null,
+  serverName: null,
 };
 
 function qualityFor(latency: number, loss: number): ConnectionQuality {
@@ -33,8 +37,9 @@ function qualityFor(latency: number, loss: number): ConnectionQuality {
 
 /**
  * Owns connection lifecycle: discovery, connect, reconnect and live metrics.
- * When no local server answers it emits clearly-flagged simulated metrics so
- * the interface can be demonstrated before Phase 2/3 land.
+ * When the Phase 2 venue server answers, metrics come from real signaling
+ * round-trips; otherwise clearly-flagged simulated metrics are emitted so the
+ * interface can still be demonstrated.
  */
 class ConnectionManagerImpl {
   private snapshot: ConnectionSnapshot = INITIAL;
@@ -63,12 +68,20 @@ class ConnectionManagerImpl {
     this.emit({ state: "discovering" });
     const info = await LocalServerService.connect();
     this.emit({
-      state: info.reachable ? "connected" : "connected",
+      state: "connected",
       simulated: !info.reachable,
       serverHost: info.host,
+      serverName: info.reachable ? info.name : null,
     });
+    if (info.reachable) void this.syncConferences();
     this.startMetrics();
     return info;
+  }
+
+  /** Pulls conferences configured on the venue server into the local store. */
+  private async syncConferences() {
+    const remote = await LocalServerService.fetchConferences();
+    if (remote.length > 0) conferenceRepository.mergeRemote(remote);
   }
 
   async retry() {
@@ -92,6 +105,18 @@ class ConnectionManagerImpl {
           latencyMs: stats.latencyMs,
           packetLoss: stats.packetLoss,
           quality: stats.quality,
+          simulated: false,
+        });
+        return;
+      }
+      // Phase 2: no media stats yet, but the signaling socket gives real RTT.
+      const rtt = LocalServerService.isLive() ? await LocalServerService.latency() : null;
+      if (rtt !== null) {
+        this.emit({
+          state: "connected",
+          latencyMs: rtt,
+          packetLoss: 0,
+          quality: qualityFor(rtt, 0),
           simulated: false,
         });
         return;
