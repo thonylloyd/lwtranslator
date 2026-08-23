@@ -1,0 +1,18 @@
+{
+  "name": "lw-translator-server",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Local venue server for the LW Translator PWA: health, conference sync and WebRTC signaling over the private Wi-Fi LAN.",
+  "main": "src/index.js",
+  "scripts": {
+    "start": "node src/index.js",
+    "dev": "node --watch src/index.js"
+  },
+  "dependencies": {
+    "ws": "^8.18.0"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}
