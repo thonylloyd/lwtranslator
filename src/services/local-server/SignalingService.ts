@@ -1,22 +1,49 @@
-import type { ConnectionState } from "@/lib/types";
+import type { Conference, ConnectionState } from "@/lib/types";
 
-export type SignalMessage =
+export type ClientSignal =
   | { type: "hello"; role: "admin" | "translator" | "listener"; conferenceCode: string }
-  | { type: "publish"; channelId: string; sdp?: string }
-  | { type: "subscribe"; channelId: string; sdp?: string }
+  | { type: "publish"; channelId: string; languageCode?: string; sdp?: string }
+  | { type: "subscribe"; channelId: string; languageCode?: string; sdp?: string }
   | { type: "unsubscribe"; channelId: string }
-  | { type: "answer"; sdp: string }
-  | { type: "candidate"; candidate: unknown }
-  | { type: "stats"; channelId: string; listeners: number; latencyMs: number }
-  | { type: "channel-state"; channelId: string; live: boolean };
+  | { type: "answer"; channelId: string; sdp: string }
+  | { type: "candidate"; channelId: string; candidate: unknown }
+  | { type: "channel-state"; channelId: string; live: boolean }
+  | { type: "ping"; sentAt: number };
 
-type Listener = (message: SignalMessage) => void;
+export type ServerSignal =
+  | {
+      type: "welcome";
+      peerId: string;
+      serverName: string;
+      version: string;
+      conference: Conference | null;
+      channels: { channelId: string; languageCode: string; live: boolean; listeners: number }[];
+    }
+  | { type: "publish-ack"; channelId: string; accepted: boolean }
+  | { type: "subscribe-ack"; channelId: string; live: boolean; listeners: number }
+  | {
+      type: "channel-state";
+      channelId: string;
+      languageCode?: string;
+      live: boolean;
+      listeners: number;
+    }
+  | { type: "stats"; channelId: string; listeners: number; live: boolean }
+  | { type: "conference"; conference: Conference }
+  | { type: "pong"; sentAt: number }
+  | { type: "answer"; channelId: string; sdp: string; from?: string }
+  | { type: "candidate"; channelId: string; candidate: unknown; from?: string };
+
+/** Kept for backwards compatibility with Phase 1 imports. */
+export type SignalMessage = ClientSignal | ServerSignal;
+
+type Listener = (message: ServerSignal) => void;
 type StateListener = (state: ConnectionState) => void;
 
 /**
- * WebSocket signaling transport to the local LW server.
+ * WebSocket signaling transport to the local LW server (`ws://<host>/signal`).
  *
- * Phase 2 will implement the server side (`ws://<host>/signal`). Until a local
+ * Phase 2: the venue server implements this protocol (see `server/`). When no
  * server answers, `connect()` resolves to `false` and the UI falls back to the
  * clearly-labelled simulated mode — no fake WebRTC session is created.
  */
@@ -25,11 +52,29 @@ export class SignalingService {
   private listeners = new Set<Listener>();
   private stateListeners = new Set<StateListener>();
   private state: ConnectionState = "idle";
+  private hello: Extract<ClientSignal, { type: "hello" }> | null = null;
+  private reconnectAttempts = 0;
+  private reconnectTimer: number | null = null;
+  private closedByUs = false;
+  private latencyMs: number | null = null;
 
   constructor(private readonly host: string) {}
 
   getState() {
     return this.state;
+  }
+
+  getHost() {
+    return this.host;
+  }
+
+  /** Last measured round-trip latency to the venue server, in ms. */
+  getLatencyMs() {
+    return this.latencyMs;
+  }
+
+  isOpen() {
+    return this.socket?.readyState === WebSocket.OPEN;
   }
 
   onMessage(listener: Listener) {
@@ -49,7 +94,8 @@ export class SignalingService {
 
   async connect(timeoutMs = 1500): Promise<boolean> {
     if (typeof window === "undefined") return false;
-    this.setState("connecting");
+    this.closedByUs = false;
+    this.setState(this.reconnectAttempts > 0 ? "reconnecting" : "connecting");
     const scheme = window.location.protocol === "https:" ? "wss" : "ws";
     return new Promise<boolean>((resolve) => {
       let settled = false;
@@ -75,6 +121,9 @@ export class SignalingService {
       socket.onopen = () => {
         window.clearTimeout(timer);
         this.socket = socket;
+        this.reconnectAttempts = 0;
+        if (this.hello) this.send(this.hello);
+        void this.measureLatency();
         finish(true);
       };
       socket.onerror = () => {
@@ -83,11 +132,18 @@ export class SignalingService {
       };
       socket.onclose = () => {
         this.socket = null;
-        if (settled && this.state === "connected") this.setState("reconnecting");
+        if (this.closedByUs) return;
+        if (settled) {
+          this.setState("reconnecting");
+          this.scheduleReconnect();
+        }
       };
       socket.onmessage = (event) => {
         try {
-          const message = JSON.parse(String(event.data)) as SignalMessage;
+          const message = JSON.parse(String(event.data)) as ServerSignal;
+          if (message.type === "pong") {
+            this.latencyMs = Math.max(1, Date.now() - message.sentAt);
+          }
           this.listeners.forEach((l) => l(message));
         } catch {
           /* ignore malformed frames */
@@ -96,7 +152,43 @@ export class SignalingService {
     });
   }
 
-  send(message: SignalMessage) {
+  /** Identifies this peer to the server and replays on every reconnect. */
+  identify(role: "admin" | "translator" | "listener", conferenceCode: string) {
+    this.hello = { type: "hello", role, conferenceCode };
+    return this.send(this.hello);
+  }
+
+  private scheduleReconnect() {
+    if (typeof window === "undefined" || this.reconnectTimer !== null) return;
+    this.reconnectAttempts += 1;
+    const delay = Math.min(15000, 500 * 2 ** (this.reconnectAttempts - 1));
+    this.reconnectTimer = window.setTimeout(() => {
+      this.reconnectTimer = null;
+      void this.connect();
+    }, delay);
+  }
+
+  /** Round-trips a ping frame and returns the latency, or null when offline. */
+  async measureLatency(timeoutMs = 2000): Promise<number | null> {
+    if (typeof window === "undefined" || !this.isOpen()) return null;
+    const sentAt = Date.now();
+    return new Promise<number | null>((resolve) => {
+      const timer = window.setTimeout(() => {
+        off();
+        resolve(null);
+      }, timeoutMs);
+      const off = this.onMessage((message) => {
+        if (message.type !== "pong" || message.sentAt !== sentAt) return;
+        window.clearTimeout(timer);
+        off();
+        this.latencyMs = Math.max(1, Date.now() - sentAt);
+        resolve(this.latencyMs);
+      });
+      this.send({ type: "ping", sentAt });
+    });
+  }
+
+  send(message: ClientSignal) {
     if (this.socket?.readyState === WebSocket.OPEN) {
       this.socket.send(JSON.stringify(message));
       return true;
@@ -105,8 +197,14 @@ export class SignalingService {
   }
 
   disconnect() {
+    this.closedByUs = true;
+    if (this.reconnectTimer !== null && typeof window !== "undefined") {
+      window.clearTimeout(this.reconnectTimer);
+      this.reconnectTimer = null;
+    }
     this.socket?.close();
     this.socket = null;
+    this.latencyMs = null;
     this.setState("idle");
   }
 }
