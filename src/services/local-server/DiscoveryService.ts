@@ -14,7 +14,18 @@ import type { ServerInfo } from "@/lib/types";
  */
 
 const OVERRIDE_KEY = "lw.server.host";
-const DEFAULT_CANDIDATES = ["lw-translator.local", "lw.local"];
+const DEFAULT_PORT = 8787;
+const DEFAULT_CANDIDATES = [
+  `lw-translator.local:${DEFAULT_PORT}`,
+  "lw-translator.local",
+  `lw.local:${DEFAULT_PORT}`,
+  "lw.local",
+];
+
+/** A bare hostname also gets probed on the server's default port. */
+function withDefaultPort(host: string): string[] {
+  return host.includes(":") ? [host] : [host, `${host}:${DEFAULT_PORT}`];
+}
 
 declare global {
   interface Window {
@@ -41,10 +52,10 @@ export const DiscoveryService = {
   candidates(): string[] {
     const list: string[] = [];
     const nativeHost = isBrowser() ? window.LWNative?.getServerHost?.() : null;
-    if (nativeHost) list.push(nativeHost);
+    if (nativeHost) list.push(...withDefaultPort(nativeHost));
     const override = this.getOverride();
-    if (override) list.push(override);
-    if (isBrowser()) list.push(window.location.host);
+    if (override) list.push(...withDefaultPort(override));
+    if (isBrowser()) list.push(...withDefaultPort(window.location.host));
     list.push(...DEFAULT_CANDIDATES);
     return [...new Set(list.filter(Boolean))];
   },
