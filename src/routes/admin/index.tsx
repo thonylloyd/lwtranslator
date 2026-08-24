@@ -10,8 +10,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { LANGUAGES, languageByCode } from "@/lib/types";
-import { LocalServerService } from "@/services/local-server/LocalServerService";
 import { useConferences } from "@/hooks/useConferences";
+import { LocalServerService } from "@/services/local-server/LocalServerService";
 
 export const Route = createFileRoute("/admin/")({
   head: () => ({
