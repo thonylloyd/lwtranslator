@@ -165,6 +165,19 @@ class LocalConferenceRepository implements ConferenceRepository {
     this.write(this.read().filter((c) => c.id !== id));
   }
 
+  mergeRemote(list: Conference[]) {
+    if (list.length === 0) return;
+    const local = this.read();
+    const byId = new Map(local.map((c) => [c.id, c] as const));
+    for (const remote of list) {
+      if (!remote?.id) continue;
+      const existing = byId.get(remote.id);
+      byId.set(remote.id, existing ? { ...existing, ...remote } : remote);
+    }
+    this.write([...byId.values()]);
+  }
+
+
   subscribe(listener: () => void) {
     this.listeners.add(listener);
     return () => this.listeners.delete(listener);
