@@ -18,6 +18,8 @@ export interface ConferenceRepository {
   upsertChannel(id: string, channel: Omit<Channel, "listeners"> & { listeners?: number }): void;
   removeChannel(id: string, channelId: string): void;
   remove(id: string): void;
+  /** Merges conferences coming from the venue server into the local copy. */
+  mergeRemote(list: Conference[]): void;
   subscribe(listener: () => void): () => void;
 }
 
@@ -61,9 +63,27 @@ const SEED: Conference[] = [
     status: "ready",
     createdAt: new Date().toISOString(),
     channels: [
-      { id: "seed-fr", languageCode: "fr", translatorName: "John Doe", status: "ready", listeners: 0 },
-      { id: "seed-es", languageCode: "es", translatorName: "Mary Ade", status: "ready", listeners: 0 },
-      { id: "seed-pt", languageCode: "pt", translatorName: "David Silva", status: "offline", listeners: 0 },
+      {
+        id: "seed-fr",
+        languageCode: "fr",
+        translatorName: "John Doe",
+        status: "ready",
+        listeners: 0,
+      },
+      {
+        id: "seed-es",
+        languageCode: "es",
+        translatorName: "Mary Ade",
+        status: "ready",
+        listeners: 0,
+      },
+      {
+        id: "seed-pt",
+        languageCode: "pt",
+        translatorName: "David Silva",
+        status: "offline",
+        listeners: 0,
+      },
     ],
   },
 ];
@@ -161,6 +181,18 @@ class LocalConferenceRepository implements ConferenceRepository {
 
   remove(id: string) {
     this.write(this.read().filter((c) => c.id !== id));
+  }
+
+  mergeRemote(list: Conference[]) {
+    if (list.length === 0) return;
+    const local = this.read();
+    const byId = new Map(local.map((c) => [c.id, c] as const));
+    for (const remote of list) {
+      if (!remote?.id) continue;
+      const existing = byId.get(remote.id);
+      byId.set(remote.id, existing ? { ...existing, ...remote } : remote);
+    }
+    this.write([...byId.values()]);
   }
 
   subscribe(listener: () => void) {

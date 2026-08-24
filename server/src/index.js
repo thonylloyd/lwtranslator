@@ -213,8 +213,7 @@ wss.on("connection", (socket) => {
         // Relay SDP/ICE to the channel counterpart (Phase 3 media path).
         const channel = peer.room?.channels.get(message.channelId);
         if (!channel) break;
-        const targets =
-          channel.publisher === peer ? [...channel.subscribers] : [channel.publisher];
+        const targets = channel.publisher === peer ? [...channel.subscribers] : [channel.publisher];
         for (const target of targets) if (target) send(target, { ...message, from: peer.id });
         break;
       }

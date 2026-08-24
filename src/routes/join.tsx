@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useConferences } from "@/hooks/useConferences";
 import { useConnection } from "@/hooks/useConnection";
+import { DiscoveryService, LocalServerService } from "@/services/local-server/LocalServerService";
 
 export const Route = createFileRoute("/join")({
   head: () => ({
@@ -15,10 +16,14 @@ export const Route = createFileRoute("/join")({
       { title: "Join a Conference — LW Translator" },
       {
         name: "description",
-        content: "Enter your conference code or scan the venue QR code to start listening to live translation.",
+        content:
+          "Enter your conference code or scan the venue QR code to start listening to live translation.",
       },
       { property: "og:title", content: "Join a Conference — LW Translator" },
-      { property: "og:description", content: "Enter your conference code to hear live translation on your phone." },
+      {
+        property: "og:description",
+        content: "Enter your conference code to hear live translation on your phone.",
+      },
     ],
   }),
   component: JoinPage,
@@ -29,12 +34,15 @@ function JoinPage() {
   const [code, setCode] = useState("");
   const { conferences } = useConferences();
   const connection = useConnection(true);
+  const [host, setHost] = useState(() => DiscoveryService.getOverride() ?? "");
 
   const submit = (value: string) => {
     const normalised = value.trim().toUpperCase();
     const found = conferences.find((c) => c.code === normalised);
     if (!found) {
-      toast.error("Conference not found", { description: "Check the code shown on the venue screen." });
+      toast.error("Conference not found", {
+        description: "Check the code shown on the venue screen.",
+      });
       return;
     }
     void navigate({ to: "/listen/$code", params: { code: normalised } });
@@ -90,7 +98,31 @@ function JoinPage() {
             live audio starts as soon as the venue server is reachable.
           </p>
         )}
-        <Button variant="secondary" className="w-full" onClick={() => void connection.retry()}>
+        <div className="space-y-2">
+          <label htmlFor="host" className="text-eyebrow">
+            Server address (optional)
+          </label>
+          <Input
+            id="host"
+            value={host}
+            onChange={(event) => setHost(event.target.value)}
+            placeholder="192.168.1.20:8787"
+            autoCapitalize="none"
+            autoComplete="off"
+            inputMode="url"
+          />
+          <p className="text-xs text-muted-foreground">
+            Leave empty to search automatically. The venue server prints its address when it starts.
+          </p>
+        </div>
+        <Button
+          variant="secondary"
+          className="w-full"
+          onClick={() => {
+            LocalServerService.setHost(host.trim() || null);
+            void connection.retry();
+          }}
+        >
           <Search className="mr-2 size-4" /> Search again
         </Button>
       </div>

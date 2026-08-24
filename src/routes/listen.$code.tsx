@@ -15,10 +15,14 @@ export const Route = createFileRoute("/listen/$code")({
       { title: "Live Translation — LW Translator" },
       {
         name: "description",
-        content: "Select your language and listen to live human translation over the venue Wi-Fi network.",
+        content:
+          "Select your language and listen to live human translation over the venue Wi-Fi network.",
       },
       { property: "og:title", content: "Live Translation — LW Translator" },
-      { property: "og:description", content: "Pick a language channel and listen to live translation." },
+      {
+        property: "og:description",
+        content: "Pick a language channel and listen to live translation.",
+      },
     ],
   }),
   component: ListenPage,
@@ -34,8 +38,9 @@ function ListenPage() {
       <AppShell eyebrow="Audience" title="Conference not found">
         <div className="panel space-y-4 p-5">
           <p className="text-sm text-muted-foreground">
-            No conference matches the code <span className="font-display text-foreground">{code}</span>{" "}
-            on this device. Ask the event team for the current code or rescan the QR code.
+            No conference matches the code{" "}
+            <span className="font-display text-foreground">{code}</span> on this device. Ask the
+            event team for the current code or rescan the QR code.
           </p>
           <Button asChild variant="secondary">
             <Link to="/join">Back to join</Link>
@@ -51,8 +56,16 @@ function ListenPage() {
   return (
     <AppShell
       eyebrow={conference.name}
-      title={session.listening ? `${languageByCode(selected?.languageCode ?? "").name} translation` : "Live translation"}
-      action={<StatusPill status={session.listening ? "live" : connection.simulated ? "simulated" : "connected"} />}
+      title={
+        session.listening
+          ? `${languageByCode(selected?.languageCode ?? "").name} translation`
+          : "Live translation"
+      }
+      action={
+        <StatusPill
+          status={session.listening ? "live" : connection.simulated ? "simulated" : "connected"}
+        />
+      }
     >
       {!session.listening ? (
         <div className="space-y-4">
@@ -77,7 +90,9 @@ function ListenPage() {
                     <span>
                       <span className="block font-medium">{language.name}</span>
                       <span className="block text-xs text-muted-foreground">
-                        {channel.translatorName ? `Translator: ${channel.translatorName}` : "Translator not assigned"}
+                        {channel.translatorName
+                          ? `Translator: ${channel.translatorName}`
+                          : "Translator not assigned"}
                       </span>
                     </span>
                   </span>
@@ -146,8 +161,9 @@ function ListenPage() {
             <div className="panel flex items-start gap-3 border-ready/40 p-4">
               <AlertTriangle className="mt-0.5 size-4 shrink-0 text-ready" />
               <p className="text-xs text-muted-foreground">
-                Channel selected and monitored, but the local translation server is not streaming yet.
-                Connection figures shown are demonstration values until the venue server is online.
+                Channel selected and monitored, but the local translation server is not streaming
+                yet. Connection figures shown are demonstration values until the venue server is
+                online.
               </p>
             </div>
           )}

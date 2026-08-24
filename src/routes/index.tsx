@@ -75,7 +75,9 @@ function Welcome() {
               </span>
               <span className="min-w-0">
                 <span className="text-eyebrow">{role.eyebrow}</span>
-                <span className="mt-0.5 block font-display text-lg font-semibold">{role.title}</span>
+                <span className="mt-0.5 block font-display text-lg font-semibold">
+                  {role.title}
+                </span>
                 <span className="mt-1 block text-sm text-muted-foreground">{role.body}</span>
               </span>
             </Link>
@@ -93,8 +95,8 @@ function Welcome() {
           <div className="panel flex items-start gap-3 p-4">
             <ShieldCheck className="mt-0.5 size-4 text-primary" />
             <p className="text-sm text-muted-foreground">
-              <span className="font-medium text-foreground">Access controlled.</span> Conferences are
-              reachable by code or QR only.
+              <span className="font-medium text-foreground">Access controlled.</span> Conferences
+              are reachable by code or QR only.
             </p>
           </div>
         </div>

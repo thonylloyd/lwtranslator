@@ -72,7 +72,9 @@ export class WebAudioService implements AudioService {
 
   private setupMeter(stream: MediaStream) {
     try {
-      const Ctx = window.AudioContext ?? (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
+      const Ctx =
+        window.AudioContext ??
+        (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
       this.audioContext = new Ctx();
       const source = this.audioContext.createMediaStreamSource(stream);
       const analyser = this.audioContext.createAnalyser();

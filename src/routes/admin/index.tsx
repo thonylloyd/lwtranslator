@@ -11,6 +11,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { LANGUAGES, languageByCode } from "@/lib/types";
 import { useConferences } from "@/hooks/useConferences";
+import { LocalServerService } from "@/services/local-server/LocalServerService";
 
 export const Route = createFileRoute("/admin/")({
   head: () => ({
@@ -18,10 +19,14 @@ export const Route = createFileRoute("/admin/")({
       { title: "Admin Dashboard — LW Translator" },
       {
         name: "description",
-        content: "Create conferences, configure language channels, assign translators and monitor live channels.",
+        content:
+          "Create conferences, configure language channels, assign translators and monitor live channels.",
       },
       { property: "og:title", content: "Admin Dashboard — LW Translator" },
-      { property: "og:description", content: "Manage conferences and translation channels for your event." },
+      {
+        property: "og:description",
+        content: "Manage conferences and translation channels for your event.",
+      },
     ],
   }),
   component: AdminPage,
@@ -74,6 +79,8 @@ function AdminPage() {
               languageCodes,
             });
             setCreating(false);
+            // Share it with the venue server so other devices can join it.
+            void LocalServerService.pushConference(conference);
             toast.success(`Conference created · ${conference.code}`);
             void navigate({ to: "/admin/$id", params: { id: conference.id } });
           }}
@@ -169,7 +176,15 @@ function AdminPage() {
                   </span>
                 </p>
               </div>
-              <StatusPill status={conference.status === "live" ? "live" : conference.status === "ready" ? "ready" : "offline"} />
+              <StatusPill
+                status={
+                  conference.status === "live"
+                    ? "live"
+                    : conference.status === "ready"
+                      ? "ready"
+                      : "offline"
+                }
+              />
             </div>
             <div className="mt-3 flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
               <span className="font-display tracking-[0.2em] text-primary">{conference.code}</span>

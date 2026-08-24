@@ -20,10 +20,14 @@ export const Route = createFileRoute("/admin/$id")({
       { title: "Conference Control — LW Translator" },
       {
         name: "description",
-        content: "Conference control: QR joining, language channels, translator assignments and live monitoring.",
+        content:
+          "Conference control: QR joining, language channels, translator assignments and live monitoring.",
       },
       { property: "og:title", content: "Conference Control — LW Translator" },
-      { property: "og:description", content: "Monitor translation channels and share the join QR code." },
+      {
+        property: "og:description",
+        content: "Monitor translation channels and share the join QR code.",
+      },
     ],
   }),
   component: ConferenceDetail,
@@ -60,7 +64,13 @@ function ConferenceDetail() {
       title={conference.name}
       action={
         <StatusPill
-          status={conference.status === "live" ? "live" : conference.status === "ready" ? "ready" : "offline"}
+          status={
+            conference.status === "live"
+              ? "live"
+              : conference.status === "ready"
+                ? "ready"
+                : "offline"
+          }
         />
       }
     >
@@ -91,7 +101,11 @@ function ConferenceDetail() {
                 onClick={() => {
                   repository.setStatus(conference.id, "ended");
                   conference.channels.forEach((channel) =>
-                    repository.upsertChannel(conference.id, { ...channel, status: "offline", listeners: 0 }),
+                    repository.upsertChannel(conference.id, {
+                      ...channel,
+                      status: "offline",
+                      listeners: 0,
+                    }),
                   );
                   toast.success("Conference ended");
                 }}
@@ -105,7 +119,9 @@ function ConferenceDetail() {
         <div className="panel flex flex-col items-center gap-3 p-5">
           <p className="text-eyebrow">Scan to join</p>
           <div className="rounded-xl bg-foreground p-3">
-            {joinUrl && <QRCodeSVG value={joinUrl} size={132} bgColor="transparent" fgColor="#0b1020" />}
+            {joinUrl && (
+              <QRCodeSVG value={joinUrl} size={132} bgColor="transparent" fgColor="#0b1020" />
+            )}
           </div>
           <p className="break-all text-center text-[0.7rem] text-muted-foreground">
             {joinUrl || "Preparing local join address…"}
@@ -197,13 +213,13 @@ function ConferenceDetail() {
               className="h-10 w-full rounded-md border border-input bg-background px-3 text-sm"
             >
               <option value="">Select language…</option>
-              {LANGUAGES.filter((l) => !conference.channels.some((c) => c.languageCode === l.code)).map(
-                (language) => (
-                  <option key={language.code} value={language.code}>
-                    {language.name}
-                  </option>
-                ),
-              )}
+              {LANGUAGES.filter(
+                (l) => !conference.channels.some((c) => c.languageCode === l.code),
+              ).map((language) => (
+                <option key={language.code} value={language.code}>
+                  {language.name}
+                </option>
+              ))}
             </select>
           </div>
           <Button type="submit" variant="secondary">
@@ -219,8 +235,14 @@ function ConferenceDetail() {
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
           <Stat label="Local server" value={connection.simulated ? "Offline" : "Online"} />
           <Stat label="Active channels" value={String(liveChannels)} />
-          <Stat label="Avg latency" value={connection.latencyMs ? `${connection.latencyMs} ms` : "—"} />
-          <Stat label="Packet loss" value={connection.packetLoss !== null ? `${connection.packetLoss}%` : "—"} />
+          <Stat
+            label="Avg latency"
+            value={connection.latencyMs ? `${connection.latencyMs} ms` : "—"}
+          />
+          <Stat
+            label="Packet loss"
+            value={connection.packetLoss !== null ? `${connection.packetLoss}%` : "—"}
+          />
         </div>
         <div className="flex flex-wrap items-center justify-between gap-2 text-xs text-muted-foreground">
           <span className="flex items-center gap-2">
@@ -232,8 +254,8 @@ function ConferenceDetail() {
         </div>
         {connection.simulated && (
           <p className="text-xs text-muted-foreground">
-            No local LW Translator server detected. Metrics shown are demonstration values; they become
-            real once the local Node.js server and SFU are running on the venue LAN.
+            No local LW Translator server detected. Metrics shown are demonstration values; they
+            become real once the local Node.js server and SFU are running on the venue LAN.
           </p>
         )}
       </section>

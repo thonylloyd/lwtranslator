@@ -96,7 +96,8 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { property: "og:title", content: "LW Translator — LoveWorld Translator App" },
       {
         property: "og:description",
-        content: "Breaking language barriers. Live translation on every phone, with no internet required.",
+        content:
+          "Breaking language barriers. Live translation on every phone, with no internet required.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
