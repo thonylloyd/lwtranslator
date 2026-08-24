@@ -18,6 +18,8 @@ export interface ConferenceRepository {
   upsertChannel(id: string, channel: Omit<Channel, "listeners"> & { listeners?: number }): void;
   removeChannel(id: string, channelId: string): void;
   remove(id: string): void;
+  /** Merges conferences coming from the venue server into the local copy. */
+  mergeRemote(list: Conference[]): void;
   subscribe(listener: () => void): () => void;
 }
 
