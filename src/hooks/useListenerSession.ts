@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from "react";
 
 import type { Channel, Conference } from "@/lib/types";
 import { AudioManager } from "@/services/audio/AudioManager";
+import { LocalServerService } from "@/services/local-server/LocalServerService";
 import { webRTCClient } from "@/services/webrtc/WebRTCClient";
 
 import { useConnection } from "./useConnection";
@@ -27,6 +28,10 @@ export function useListenerSession(conference: Conference | undefined) {
     setLanguageCode(code);
     if (typeof window !== "undefined") window.localStorage.setItem(LANGUAGE_KEY, code);
   }, []);
+
+  useEffect(() => {
+    if (conference) LocalServerService.identify("listener", conference.code);
+  }, [conference, connection.state]);
 
   const channel: Channel | undefined = conference?.channels.find(
     (c) => c.languageCode === languageCode,

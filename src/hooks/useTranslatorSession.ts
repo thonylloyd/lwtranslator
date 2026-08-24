@@ -2,6 +2,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 
 import type { Channel, Conference } from "@/lib/types";
 import { AudioManager } from "@/services/audio/AudioManager";
+import { LocalServerService } from "@/services/local-server/LocalServerService";
 import { webRTCClient } from "@/services/webrtc/WebRTCClient";
 
 import { useConnection } from "./useConnection";
@@ -33,6 +34,10 @@ export function useTranslatorSession(conference: Conference | undefined, channel
   }, [broadcastState, audio]);
 
   useEffect(() => () => audio.releaseMicrophone(), [audio]);
+
+  useEffect(() => {
+    if (conference) LocalServerService.identify("translator", conference.code);
+  }, [conference, connection.state]);
 
   const requestMic = useCallback(async () => {
     const result = await audio.requestMicrophone();
