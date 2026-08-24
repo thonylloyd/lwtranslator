@@ -39,18 +39,30 @@ export class SfuTransport implements WebRTCTransport {
     const signaling = LocalServerService.getSignaling();
     if (!signaling) return false;
     // Phase 3: create RTCPeerConnection, add channel.localStream track, send offer.
-    return signaling.send({ type: "publish", channelId: channel.id, languageCode: channel.languageCode });
+    return signaling.send({
+      type: "publish",
+      channelId: channel.id,
+      languageCode: channel.languageCode,
+    });
   }
 
   async subscribe(channel: AudioChannel) {
     const signaling = LocalServerService.getSignaling();
     if (!signaling) return false;
     // Phase 3: create RTCPeerConnection (recvonly), handle SFU offer/answer.
-    return signaling.send({ type: "subscribe", channelId: channel.id, languageCode: channel.languageCode });
+    return signaling.send({
+      type: "subscribe",
+      channelId: channel.id,
+      languageCode: channel.languageCode,
+    });
   }
 
   async unpublish(channel: AudioChannel) {
-    LocalServerService.getSignaling()?.send({ type: "channel-state", channelId: channel.id, live: false });
+    LocalServerService.getSignaling()?.send({
+      type: "channel-state",
+      channelId: channel.id,
+      live: false,
+    });
   }
 
   async unsubscribe(channel: AudioChannel) {

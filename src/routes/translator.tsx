@@ -17,10 +17,14 @@ export const Route = createFileRoute("/translator")({
       { title: "Translator Mode — LW Translator" },
       {
         name: "description",
-        content: "Translator console: join the conference, open your assigned language channel and go live.",
+        content:
+          "Translator console: join the conference, open your assigned language channel and go live.",
       },
       { property: "og:title", content: "Translator Mode — LW Translator" },
-      { property: "og:description", content: "Go live on your assigned language channel in seconds." },
+      {
+        property: "og:description",
+        content: "Go live on your assigned language channel in seconds.",
+      },
     ],
   }),
   component: TranslatorPage,
@@ -149,7 +153,9 @@ function TranslatorConsole({
     <AppShell
       eyebrow={conference.name}
       title="Translator mode"
-      action={<StatusPill status={session.isLive ? "live" : session.micGranted ? "ready" : "offline"} />}
+      action={
+        <StatusPill status={session.isLive ? "live" : session.micGranted ? "ready" : "offline"} />
+      }
     >
       <div className="panel space-y-6 p-6 text-center">
         <div>
@@ -179,7 +185,11 @@ function TranslatorConsole({
         </div>
 
         {!session.micGranted ? (
-          <Button size="lg" className="h-16 w-full text-base" onClick={() => void session.requestMic()}>
+          <Button
+            size="lg"
+            className="h-16 w-full text-base"
+            onClick={() => void session.requestMic()}
+          >
             <Mic className="mr-2 size-5" /> Enable microphone
           </Button>
         ) : !session.isLive ? (
@@ -194,7 +204,11 @@ function TranslatorConsole({
               className="h-14"
               onClick={() => session.setMuted(!session.isMuted)}
             >
-              {session.isMuted ? <Mic className="mr-2 size-5" /> : <MicOff className="mr-2 size-5" />}
+              {session.isMuted ? (
+                <Mic className="mr-2 size-5" />
+              ) : (
+                <MicOff className="mr-2 size-5" />
+              )}
               {session.isMuted ? "Unmute" : "Mute"}
             </Button>
             <Button
@@ -232,8 +246,9 @@ function TranslatorConsole({
         <div className="panel mt-4 flex items-start gap-3 border-ready/40 p-4">
           <AlertTriangle className="mt-0.5 size-4 shrink-0 text-ready" />
           <p className="text-xs text-muted-foreground">
-            Your microphone is captured locally, but the local translation server is not connected, so
-            no audio is leaving this device yet. Listener and latency figures are demonstration values.
+            Your microphone is captured locally, but the local translation server is not connected,
+            so no audio is leaving this device yet. Listener and latency figures are demonstration
+            values.
           </p>
         </div>
       )}

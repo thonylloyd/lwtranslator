@@ -58,7 +58,9 @@ export class Hub {
   }
 
   room(code) {
-    const key = String(code ?? "LOBBY").trim().toUpperCase();
+    const key = String(code ?? "LOBBY")
+      .trim()
+      .toUpperCase();
     let room = this.rooms.get(key);
     if (!room) {
       room = new Room(key);
@@ -128,10 +130,7 @@ export class Hub {
     return {
       rooms,
       peers: rooms.reduce((sum, r) => sum + r.peers, 0),
-      liveChannels: rooms.reduce(
-        (sum, r) => sum + r.channels.filter((c) => c.live).length,
-        0,
-      ),
+      liveChannels: rooms.reduce((sum, r) => sum + r.channels.filter((c) => c.live).length, 0),
     };
   }
 }

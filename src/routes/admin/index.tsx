@@ -19,10 +19,14 @@ export const Route = createFileRoute("/admin/")({
       { title: "Admin Dashboard — LW Translator" },
       {
         name: "description",
-        content: "Create conferences, configure language channels, assign translators and monitor live channels.",
+        content:
+          "Create conferences, configure language channels, assign translators and monitor live channels.",
       },
       { property: "og:title", content: "Admin Dashboard — LW Translator" },
-      { property: "og:description", content: "Manage conferences and translation channels for your event." },
+      {
+        property: "og:description",
+        content: "Manage conferences and translation channels for your event.",
+      },
     ],
   }),
   component: AdminPage,
@@ -172,7 +176,15 @@ function AdminPage() {
                   </span>
                 </p>
               </div>
-              <StatusPill status={conference.status === "live" ? "live" : conference.status === "ready" ? "ready" : "offline"} />
+              <StatusPill
+                status={
+                  conference.status === "live"
+                    ? "live"
+                    : conference.status === "ready"
+                      ? "ready"
+                      : "offline"
+                }
+              />
             </div>
             <div className="mt-3 flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
               <span className="font-display tracking-[0.2em] text-primary">{conference.code}</span>

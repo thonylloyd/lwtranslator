@@ -11,10 +11,20 @@ export function StatusPill({
   const map: Record<string, { label: string; dot: string; text: string; bg: string }> = {
     live: { label: "LIVE", dot: "bg-live", text: "text-live", bg: "bg-live/12" },
     ready: { label: "READY", dot: "bg-ready", text: "text-ready", bg: "bg-ready/12" },
-    offline: { label: "OFFLINE", dot: "bg-muted-foreground", text: "text-muted-foreground", bg: "bg-muted" },
+    offline: {
+      label: "OFFLINE",
+      dot: "bg-muted-foreground",
+      text: "text-muted-foreground",
+      bg: "bg-muted",
+    },
     connected: { label: "CONNECTED", dot: "bg-primary", text: "text-primary", bg: "bg-primary/12" },
     reconnecting: { label: "RECONNECTING", dot: "bg-ready", text: "text-ready", bg: "bg-ready/12" },
-    simulated: { label: "SIMULATED", dot: "bg-muted-foreground", text: "text-muted-foreground", bg: "bg-muted" },
+    simulated: {
+      label: "SIMULATED",
+      dot: "bg-muted-foreground",
+      text: "text-muted-foreground",
+      bg: "bg-muted",
+    },
   };
   const cfg = map[status] ?? map["offline"]!;
   return (
@@ -45,5 +55,7 @@ export function QualityLabel({ quality }: { quality: ConnectionQuality }) {
         : quality === "poor"
           ? "text-live"
           : "text-muted-foreground";
-  return <span className={cn("font-display text-sm font-semibold tracking-wide", tone)}>{label}</span>;
+  return (
+    <span className={cn("font-display text-sm font-semibold tracking-wide", tone)}>{label}</span>
+  );
 }

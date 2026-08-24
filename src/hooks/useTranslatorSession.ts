@@ -10,7 +10,10 @@ import { useConnection } from "./useConnection";
 export type BroadcastState = "idle" | "ready" | "live" | "muted";
 
 /** Translator broadcast session: mic permission, level metering, go-live. */
-export function useTranslatorSession(conference: Conference | undefined, channel: Channel | undefined) {
+export function useTranslatorSession(
+  conference: Conference | undefined,
+  channel: Channel | undefined,
+) {
   const connection = useConnection(true);
   const [broadcastState, setBroadcastState] = useState<BroadcastState>("idle");
   const [micError, setMicError] = useState<string | null>(null);

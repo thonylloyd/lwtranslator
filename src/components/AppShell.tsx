@@ -12,7 +12,9 @@ export function BrandMark({ compact = false }: { compact?: boolean }) {
       {!compact && (
         <span className="leading-tight">
           <span className="block font-display text-sm font-semibold">LW Translator</span>
-          <span className="block text-[0.68rem] text-muted-foreground">Breaking Language Barriers</span>
+          <span className="block text-[0.68rem] text-muted-foreground">
+            Breaking Language Barriers
+          </span>
         </span>
       )}
     </Link>

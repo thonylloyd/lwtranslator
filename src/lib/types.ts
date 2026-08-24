@@ -1,12 +1,7 @@
 export type ConferenceStatus = "ready" | "live" | "ended";
 export type ChannelStatus = "offline" | "ready" | "live";
 export type ConnectionState =
-  | "idle"
-  | "discovering"
-  | "connecting"
-  | "connected"
-  | "reconnecting"
-  | "failed";
+  "idle" | "discovering" | "connecting" | "connected" | "reconnecting" | "failed";
 export type ConnectionQuality = "excellent" | "good" | "fair" | "poor" | "unknown";
 
 export interface LanguageOption {

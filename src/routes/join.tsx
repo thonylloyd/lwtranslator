@@ -16,10 +16,14 @@ export const Route = createFileRoute("/join")({
       { title: "Join a Conference — LW Translator" },
       {
         name: "description",
-        content: "Enter your conference code or scan the venue QR code to start listening to live translation.",
+        content:
+          "Enter your conference code or scan the venue QR code to start listening to live translation.",
       },
       { property: "og:title", content: "Join a Conference — LW Translator" },
-      { property: "og:description", content: "Enter your conference code to hear live translation on your phone." },
+      {
+        property: "og:description",
+        content: "Enter your conference code to hear live translation on your phone.",
+      },
     ],
   }),
   component: JoinPage,
@@ -36,7 +40,9 @@ function JoinPage() {
     const normalised = value.trim().toUpperCase();
     const found = conferences.find((c) => c.code === normalised);
     if (!found) {
-      toast.error("Conference not found", { description: "Check the code shown on the venue screen." });
+      toast.error("Conference not found", {
+        description: "Check the code shown on the venue screen.",
+      });
       return;
     }
     void navigate({ to: "/listen/$code", params: { code: normalised } });

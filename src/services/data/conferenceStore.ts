@@ -63,9 +63,27 @@ const SEED: Conference[] = [
     status: "ready",
     createdAt: new Date().toISOString(),
     channels: [
-      { id: "seed-fr", languageCode: "fr", translatorName: "John Doe", status: "ready", listeners: 0 },
-      { id: "seed-es", languageCode: "es", translatorName: "Mary Ade", status: "ready", listeners: 0 },
-      { id: "seed-pt", languageCode: "pt", translatorName: "David Silva", status: "offline", listeners: 0 },
+      {
+        id: "seed-fr",
+        languageCode: "fr",
+        translatorName: "John Doe",
+        status: "ready",
+        listeners: 0,
+      },
+      {
+        id: "seed-es",
+        languageCode: "es",
+        translatorName: "Mary Ade",
+        status: "ready",
+        listeners: 0,
+      },
+      {
+        id: "seed-pt",
+        languageCode: "pt",
+        translatorName: "David Silva",
+        status: "offline",
+        listeners: 0,
+      },
     ],
   },
 ];
@@ -176,7 +194,6 @@ class LocalConferenceRepository implements ConferenceRepository {
     }
     this.write([...byId.values()]);
   }
-
 
   subscribe(listener: () => void) {
     this.listeners.add(listener);
