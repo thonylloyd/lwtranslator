@@ -26,6 +26,7 @@ class Room {
   constructor(code) {
     this.code = code;
     this.peers = new Set();
+    this.peerById = new Map();
     this.channels = new Map();
   }
 
@@ -73,6 +74,7 @@ export class Hub {
     const room = this.room(code);
     peer.room = room;
     room.peers.add(peer);
+    room.peerById.set(peer.id, peer);
     return room;
   }
 
@@ -120,6 +122,7 @@ export class Hub {
       if (channel.subscribers.delete(peer)) touched.push(channel);
     }
     room.peers.delete(peer);
+    room.peerById.delete(peer.id);
     peer.room = null;
     if (room.peers.size === 0) this.rooms.delete(room.code);
     return touched;
