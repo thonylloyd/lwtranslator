@@ -175,8 +175,13 @@ wss.on("connection", (socket) => {
       case "publish": {
         const channel = hub.publish(peer, message.channelId, message.languageCode);
         if (!channel) break;
-        // Phase 3 hook: forward message.sdp to the media layer and answer back.
         send(peer, { type: "publish-ack", channelId: channel.id, accepted: true });
+        // Tell the already-waiting audience that a translator is live, and hand
+        // the translator every existing subscriber so it can offer media.
+        for (const subscriber of channel.subscribers) {
+          send(subscriber, { type: "publisher-live", channelId: channel.id, peerId: peer.id });
+          send(peer, { type: "subscriber-joined", channelId: channel.id, peerId: subscriber.id });
+        }
         announceChannel(channel, peer.room);
         break;
       }
@@ -190,31 +195,65 @@ wss.on("connection", (socket) => {
           live: channel.live,
           listeners: channel.listeners,
         });
+        if (channel.publisher) {
+          send(channel.publisher, {
+            type: "subscriber-joined",
+            channelId: channel.id,
+            peerId: peer.id,
+          });
+          send(peer, {
+            type: "publisher-live",
+            channelId: channel.id,
+            peerId: channel.publisher.id,
+          });
+        }
         announceChannel(channel, peer.room);
         break;
       }
 
       case "unsubscribe": {
         const channel = hub.unsubscribe(peer, message.channelId);
-        if (channel) announceChannel(channel, peer.room);
+        if (!channel) break;
+        if (channel.publisher) {
+          send(channel.publisher, {
+            type: "subscriber-left",
+            channelId: channel.id,
+            peerId: peer.id,
+          });
+        }
+        announceChannel(channel, peer.room);
         break;
       }
 
       case "channel-state": {
         if (message.live === false) {
           const channel = hub.unpublish(peer, message.channelId);
-          if (channel) announceChannel(channel, peer.room);
+          if (!channel) break;
+          for (const subscriber of channel.subscribers) {
+            send(subscriber, { type: "publisher-offline", channelId: channel.id });
+          }
+          announceChannel(channel, peer.room);
         }
         break;
       }
 
+      case "offer":
       case "answer":
       case "candidate": {
-        // Relay SDP/ICE to the channel counterpart (Phase 3 media path).
+        // Media negotiation relay: publisher <-> individual subscriber.
         const channel = peer.room?.channels.get(message.channelId);
         if (!channel) break;
-        const targets = channel.publisher === peer ? [...channel.subscribers] : [channel.publisher];
-        for (const target of targets) if (target) send(target, { ...message, from: peer.id });
+        const direct = message.to ? peer.room.peerById.get(message.to) : null;
+        const targets = direct
+          ? [direct]
+          : channel.publisher === peer
+            ? [...channel.subscribers]
+            : [channel.publisher];
+        for (const target of targets) {
+          if (!target || target === peer) continue;
+          const { to: _ignored, ...rest } = message;
+          send(target, { ...rest, from: peer.id });
+        }
         break;
       }
 
