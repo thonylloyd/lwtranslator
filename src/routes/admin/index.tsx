@@ -74,6 +74,8 @@ function AdminPage() {
               languageCodes,
             });
             setCreating(false);
+            // Share it with the venue server so other devices can join it.
+            void LocalServerService.pushConference(conference);
             toast.success(`Conference created · ${conference.code}`);
             void navigate({ to: "/admin/$id", params: { id: conference.id } });
           }}
