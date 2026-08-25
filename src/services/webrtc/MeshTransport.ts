@@ -92,7 +92,7 @@ export class MeshTransport implements WebRTCTransport {
       type: "offer",
       channelId: session.channel.id,
       to: peerId,
-      sdp: { type: offer.type, sdp: offer.sdp },
+      sdp: { type: offer.type, sdp: offer.sdp ?? "" },
     });
   }
 
@@ -199,7 +199,7 @@ export class MeshTransport implements WebRTCTransport {
           type: "answer",
           channelId: session.channel.id,
           to: from,
-          sdp: { type: answer.type, sdp: answer.sdp },
+          sdp: { type: answer.type, sdp: answer.sdp ?? "" },
         });
         break;
       }
