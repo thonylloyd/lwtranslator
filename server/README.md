@@ -34,12 +34,17 @@ via mDNS/router DNS so discovery finds it automatically.
 ## Signaling (`ws://<host>/signal`)
 
 Client → server: `hello`, `publish`, `subscribe`, `unsubscribe`,
-`channel-state`, `answer`, `candidate`, `ping`.
+`channel-state`, `offer`, `answer`, `candidate` (each optionally targeted with
+`to: <peerId>`), `ping`.
 
-Server → client: `welcome`, `publish-ack`, `subscribe-ack`,
-`channel-state`, `stats`, `pong`, `conference`.
+Server → client: `welcome`, `publish-ack`, `subscribe-ack`, `channel-state`,
+`subscriber-joined`, `subscriber-left`, `publisher-live`, `publisher-offline`,
+`offer`, `answer`, `candidate` (tagged with `from: <peerId>`), `stats`, `pong`,
+`conference`.
 
 One publisher (translator) and many subscribers (audience) per language
-channel, scoped to a conference room by code. The `sdp`/`candidate` payloads
-are relayed already, so Phase 3 only has to attach the media layer (SFU
-tracks) behind the same message names.
+channel, scoped to a conference room by code. The server relays SDP/ICE only:
+audio flows directly between the translator device and each listener over the
+private Wi-Fi, so no media ever leaves the LAN and latency stays low. When a
+translator goes live the server pairs it with every waiting listener
+(`subscriber-joined` / `publisher-live`) so negotiation starts immediately.
