@@ -44,10 +44,20 @@ export function useListenerSession(conference: Conference | undefined) {
       channel.languageCode,
     );
     setAudioReady(supported && Boolean(rtcChannel.remoteStream));
-    if (rtcChannel.remoteStream) audio.playRemote(rtcChannel.remoteStream);
+    // The translator's audio arrives asynchronously once media negotiation ends.
+    rtcChannel.onRemoteStream((stream) => {
+      if (stream) {
+        audio.playRemote(stream);
+        audio.setVolume(volume);
+        setAudioReady(true);
+      } else {
+        audio.stopRemote();
+        setAudioReady(false);
+      }
+    });
     setListening(true);
     return true;
-  }, [audio, channel]);
+  }, [audio, channel, volume]);
 
   const disconnect = useCallback(async () => {
     if (channel) await webRTCClient.stop(channel.id);

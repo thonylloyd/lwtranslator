@@ -5,8 +5,9 @@ export type ClientSignal =
   | { type: "publish"; channelId: string; languageCode?: string; sdp?: string }
   | { type: "subscribe"; channelId: string; languageCode?: string; sdp?: string }
   | { type: "unsubscribe"; channelId: string }
-  | { type: "answer"; channelId: string; sdp: string }
-  | { type: "candidate"; channelId: string; candidate: unknown }
+  | { type: "offer"; channelId: string; sdp: RTCSessionDescriptionInit; to?: string }
+  | { type: "answer"; channelId: string; sdp: RTCSessionDescriptionInit; to?: string }
+  | { type: "candidate"; channelId: string; candidate: RTCIceCandidateInit | null; to?: string }
   | { type: "channel-state"; channelId: string; live: boolean }
   | { type: "ping"; sentAt: number };
 
@@ -31,8 +32,13 @@ export type ServerSignal =
   | { type: "stats"; channelId: string; listeners: number; live: boolean }
   | { type: "conference"; conference: Conference }
   | { type: "pong"; sentAt: number }
-  | { type: "answer"; channelId: string; sdp: string; from?: string }
-  | { type: "candidate"; channelId: string; candidate: unknown; from?: string };
+  | { type: "offer"; channelId: string; sdp: RTCSessionDescriptionInit; from?: string }
+  | { type: "answer"; channelId: string; sdp: RTCSessionDescriptionInit; from?: string }
+  | { type: "candidate"; channelId: string; candidate: RTCIceCandidateInit | null; from?: string }
+  | { type: "subscriber-joined"; channelId: string; peerId: string }
+  | { type: "subscriber-left"; channelId: string; peerId: string }
+  | { type: "publisher-live"; channelId: string; peerId: string }
+  | { type: "publisher-offline"; channelId: string };
 
 /** Kept for backwards compatibility with Phase 1 imports. */
 export type SignalMessage = ClientSignal | ServerSignal;
