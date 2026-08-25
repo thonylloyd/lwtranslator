@@ -1,15 +1,17 @@
 import type { ChannelStatus } from "@/lib/types";
 
 /**
- * A single language channel on the SFU. One publisher (the translator) and
- * many subscribers (the audience). The transport is filled in by
- * `WebRTCClient` once the local SFU exists (Phase 3).
+ * A single language channel. One publisher (the translator) and many
+ * subscribers (the audience). Media negotiation is relayed by the local venue
+ * server; see `MeshTransport`.
  */
 export interface AudioChannelInfo {
   id: string;
   languageCode: string;
   status: ChannelStatus;
 }
+
+type RemoteListener = (stream: MediaStream | null) => void;
 
 export class AudioChannel {
   readonly id: string;
@@ -19,10 +21,18 @@ export class AudioChannel {
   remoteStream: MediaStream | null = null;
   /** Local (published) microphone track for a translator. */
   localStream: MediaStream | null = null;
+  private remoteListeners = new Set<RemoteListener>();
 
   constructor(info: { id: string; languageCode: string }) {
     this.id = info.id;
     this.languageCode = info.languageCode;
+  }
+
+  /** Notified whenever the remote audio stream arrives or drops. */
+  onRemoteStream(listener: RemoteListener) {
+    this.remoteListeners.add(listener);
+    if (this.remoteStream) listener(this.remoteStream);
+    return () => this.remoteListeners.delete(listener);
   }
 
   attachLocal(stream: MediaStream) {
@@ -33,6 +43,13 @@ export class AudioChannel {
   attachRemote(stream: MediaStream) {
     this.remoteStream = stream;
     this.status = "live";
+    this.remoteListeners.forEach((l) => l(stream));
+  }
+
+  detachRemote() {
+    this.remoteStream = null;
+    this.status = "ready";
+    this.remoteListeners.forEach((l) => l(null));
   }
 
   release() {
@@ -40,5 +57,7 @@ export class AudioChannel {
     this.localStream = null;
     this.remoteStream = null;
     this.status = "offline";
+    this.remoteListeners.forEach((l) => l(null));
+    this.remoteListeners.clear();
   }
 }
