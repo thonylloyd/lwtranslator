@@ -1,7 +1,7 @@
 import type { ConnectionQuality } from "@/lib/types";
-import { LocalServerService } from "@/services/local-server/LocalServerService";
 
 import { AudioChannel } from "./AudioChannel";
+import { MeshTransport } from "./MeshTransport";
 
 export interface RtcStats {
   latencyMs: number;
@@ -27,55 +27,8 @@ export interface WebRTCTransport {
   getStats(): Promise<RtcStats | null>;
 }
 
-/** SFU transport over the local server's signaling channel. */
-export class SfuTransport implements WebRTCTransport {
-  readonly name = "local-sfu";
-
-  isAvailable() {
-    return Boolean(LocalServerService.getSignaling());
-  }
-
-  async publish(channel: AudioChannel) {
-    const signaling = LocalServerService.getSignaling();
-    if (!signaling) return false;
-    // Phase 3: create RTCPeerConnection, add channel.localStream track, send offer.
-    return signaling.send({
-      type: "publish",
-      channelId: channel.id,
-      languageCode: channel.languageCode,
-    });
-  }
-
-  async subscribe(channel: AudioChannel) {
-    const signaling = LocalServerService.getSignaling();
-    if (!signaling) return false;
-    // Phase 3: create RTCPeerConnection (recvonly), handle SFU offer/answer.
-    return signaling.send({
-      type: "subscribe",
-      channelId: channel.id,
-      languageCode: channel.languageCode,
-    });
-  }
-
-  async unpublish(channel: AudioChannel) {
-    LocalServerService.getSignaling()?.send({
-      type: "channel-state",
-      channelId: channel.id,
-      live: false,
-    });
-  }
-
-  async unsubscribe(channel: AudioChannel) {
-    LocalServerService.getSignaling()?.send({ type: "unsubscribe", channelId: channel.id });
-  }
-
-  async getStats() {
-    return null;
-  }
-}
-
 export class WebRTCClient {
-  private transport: WebRTCTransport = new SfuTransport();
+  private transport: WebRTCTransport = new MeshTransport();
   private channels = new Map<string, AudioChannel>();
 
   setTransport(transport: WebRTCTransport) {
