@@ -151,7 +151,7 @@ function ConferenceDetail() {
                     {language.flag} {language.name}
                   </p>
                   <div className="flex items-center gap-2">
-                    <StatusPill status={channel.status} />
+                    <StatusPill status={live.channelState(channel.id)?.live ? "live" : channel.status} />
                     <Button
                       variant="ghost"
                       size="icon"
@@ -181,7 +181,10 @@ function ConferenceDetail() {
                     />
                   </div>
                   <p className="text-xs text-muted-foreground sm:pb-2.5">
-                    Listeners: <span className="text-foreground">{channel.listeners}</span>
+                    Listeners:{" "}
+                    <span className="text-foreground">
+                      {live.channelState(channel.id)?.listeners ?? channel.listeners}
+                    </span>
                   </p>
                 </div>
               </div>
