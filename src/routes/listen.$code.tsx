@@ -8,6 +8,7 @@ import { Slider } from "@/components/ui/slider";
 import { languageByCode } from "@/lib/types";
 import { useConferenceByCode } from "@/hooks/useConferences";
 import { useListenerSession } from "@/hooks/useListenerSession";
+import { useLiveChannels } from "@/hooks/useLiveChannels";
 
 export const Route = createFileRoute("/listen/$code")({
   head: () => ({
@@ -32,6 +33,7 @@ function ListenPage() {
   const { code } = useParams({ from: "/listen/$code" });
   const { conference } = useConferenceByCode(code);
   const session = useListenerSession(conference);
+  const live = useLiveChannels(conference?.code);
 
   if (!conference) {
     return (
@@ -96,7 +98,7 @@ function ListenPage() {
                       </span>
                     </span>
                   </span>
-                  <StatusPill status={channel.status} />
+                  <StatusPill status={live.channelState(channel.id)?.live ? "live" : channel.status} />
                 </button>
               );
             })}
@@ -125,9 +127,11 @@ function ListenPage() {
                 {languageByCode(selected?.languageCode ?? "").name}
               </p>
               <p className="mt-1 text-sm text-muted-foreground">
-                {selected?.translatorName
-                  ? `${selected.translatorName} · translator connected`
-                  : "Waiting for the translator"}
+                {live.channelState(selected?.id ?? "")?.live === false
+                  ? "Waiting for the translator to go live"
+                  : selected?.translatorName
+                    ? `${selected.translatorName} · translator connected`
+                    : "Waiting for the translator"}
               </p>
             </div>
 

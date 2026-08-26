@@ -11,7 +11,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { LANGUAGES, languageByCode } from "@/lib/types";
 import { useConference } from "@/hooks/useConferences";
-import { useConnection } from "@/hooks/useConnection";
+import { useLiveChannels } from "@/hooks/useLiveChannels";
 import { randomId } from "@/services/data/conferenceStore";
 
 export const Route = createFileRoute("/admin/$id")({
@@ -36,7 +36,8 @@ export const Route = createFileRoute("/admin/$id")({
 function ConferenceDetail() {
   const { id } = useParams({ from: "/admin/$id" });
   const { conference, repository } = useConference(id);
-  const connection = useConnection(true);
+  const live = useLiveChannels(conference?.code);
+  const connection = live.connection;
   const [joinUrl, setJoinUrl] = useState("");
   const [newLanguage, setNewLanguage] = useState("");
 
@@ -55,8 +56,12 @@ function ConferenceDetail() {
     );
   }
 
-  const totalListeners = conference.channels.reduce((sum, c) => sum + c.listeners, 0);
-  const liveChannels = conference.channels.filter((c) => c.status === "live").length;
+  const totalListeners = live.fromServer
+    ? live.totalListeners
+    : conference.channels.reduce((sum, c) => sum + c.listeners, 0);
+  const liveChannels = live.fromServer
+    ? live.liveCount
+    : conference.channels.filter((c) => c.status === "live").length;
 
   return (
     <AppShell

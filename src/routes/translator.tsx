@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { languageByCode, type Channel, type Conference } from "@/lib/types";
 import { useConferences } from "@/hooks/useConferences";
+import { useLiveChannels } from "@/hooks/useLiveChannels";
 import { useTranslatorSession } from "@/hooks/useTranslatorSession";
 
 export const Route = createFileRoute("/translator")({
@@ -146,6 +147,7 @@ function TranslatorConsole({
   onLeave: () => void;
 }) {
   const session = useTranslatorSession(conference, channel);
+  const live = useLiveChannels();
   const language = languageByCode(channel.languageCode);
   const { connection } = session;
 
@@ -227,7 +229,9 @@ function TranslatorConsole({
         <div className="grid grid-cols-3 gap-3 text-left">
           <div className="rounded-lg bg-secondary/60 p-3">
             <p className="text-eyebrow">Listeners</p>
-            <p className="font-display text-lg font-semibold">{channel.listeners}</p>
+            <p className="font-display text-lg font-semibold">
+              {live.channelState(channel.id)?.listeners ?? channel.listeners}
+            </p>
           </div>
           <div className="rounded-lg bg-secondary/60 p-3">
             <p className="text-eyebrow">Connection</p>
