@@ -36,7 +36,7 @@ export function useLiveChannels(conferenceCode?: string) {
     const patch = (channelId: string, next: Partial<LiveChannelState>) =>
       setChannels((prev) => ({ ...prev, [channelId]: { ...(prev[channelId] ?? EMPTY), ...next } }));
 
-    return signaling.onMessage((message) => {
+    const off = signaling.onMessage((message) => {
       switch (message.type) {
         case "welcome":
           setChannels(
@@ -60,6 +60,9 @@ export function useLiveChannels(conferenceCode?: string) {
           break;
       }
     });
+    return () => {
+      off();
+    };
   }, [connection.state, connection.serverHost]);
 
   const channelState = useCallback(
