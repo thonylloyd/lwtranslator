@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  The venue server runs on plain HTTP inside a private Wi-Fi LAN with no
+  internet and no certificate authority, so cleartext is allowed for local
+  hosts only.
+-->
+<network-security-config>
+    <domain-config cleartextTrafficPermitted="true">
+        <domain includeSubdomains="true">lw-translator.local</domain>
+        <domain includeSubdomains="true">lw.local</domain>
+        <domain includeSubdomains="false">localhost</domain>
+        <domain includeSubdomains="true">10.0.0.0</domain>
+        <domain includeSubdomains="true">192.168.0.0</domain>
+        <domain includeSubdomains="true">172.16.0.0</domain>
+    </domain-config>
+    <base-config cleartextTrafficPermitted="true" />
+</network-security-config>
