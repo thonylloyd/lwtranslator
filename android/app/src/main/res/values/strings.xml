@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">LW Translator</string>
+    <string name="audio_channel_name">Live translation audio</string>
+    <string name="audio_notification_translator">Broadcasting live translation</string>
+    <string name="audio_notification_listener">Listening to live translation</string>
+</resources>
