@@ -1,16 +1,24 @@
 import { createServer } from "node:http";
 import { networkInterfaces } from "node:os";
 import { randomUUID } from "node:crypto";
+import { fileURLToPath } from "node:url";
+import { dirname, resolve } from "node:path";
 
 import { WebSocketServer } from "ws";
 
 import { Hub } from "./rooms.js";
 import { store } from "./store.js";
+import { createStaticHandler } from "./static.js";
 
 const PORT = Number(process.env.PORT ?? 8787);
 const SERVER_NAME = process.env.LW_SERVER_NAME ?? "LW Translator Server";
 const VERSION = "1.0.0";
 const STARTED_AT = Date.now();
+
+const HERE = dirname(fileURLToPath(import.meta.url));
+/** Built PWA served to phones on the venue Wi-Fi (no internet needed). */
+const STATIC_DIR = resolve(process.env.LW_STATIC_DIR ?? resolve(HERE, "../public"));
+const serveStatic = createStaticHandler(STATIC_DIR);
 
 const hub = new Hub();
 
@@ -43,6 +51,19 @@ async function readBody(req) {
   }
 }
 
+let hostsApp = false;
+
+/** True when the built PWA has been copied next to the server. */
+async function appIsBundled() {
+  try {
+    const { stat } = await import("node:fs/promises");
+    const info = await stat(resolve(STATIC_DIR, "index.html"));
+    return info.isFile();
+  } catch {
+    return false;
+  }
+}
+
 function lanAddresses() {
   return Object.values(networkInterfaces())
     .flat()
@@ -66,6 +87,7 @@ const server = createServer(async (req, res) => {
       version: VERSION,
       uptimeSeconds: Math.round((Date.now() - STARTED_AT) / 1000),
       addresses: lanAddresses(),
+      appHosted: hostsApp,
       conferences: store.list().length,
       connectedPeers: stats.peers,
       liveChannels: stats.liveChannels,
@@ -107,6 +129,9 @@ const server = createServer(async (req, res) => {
     if (!conference) return json(res, 404, { error: "not found" });
     return json(res, 200, conference);
   }
+
+  // Anything else: the built PWA (index.html fallback keeps deep links working).
+  if (await serveStatic(req, res, url.pathname)) return;
 
   json(res, 404, { error: "not found" });
 });
@@ -289,7 +314,13 @@ setInterval(() => {
   }
 }, 2500).unref?.();
 
-server.listen(PORT, "0.0.0.0", () => {
+server.listen(PORT, "0.0.0.0", async () => {
+  hostsApp = await appIsBundled();
   console.log(`${SERVER_NAME} v${VERSION} listening on port ${PORT}`);
-  for (const address of lanAddresses()) console.log(`  http://${address}/health`);
+  console.log(
+    hostsApp
+      ? `  serving the LW Translator app from ${STATIC_DIR}`
+      : `  no app bundle in ${STATIC_DIR} (API + signaling only)`,
+  );
+  for (const address of lanAddresses()) console.log(`  http://${address}/`);
 });
