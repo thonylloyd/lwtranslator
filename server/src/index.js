@@ -9,6 +9,7 @@ import { WebSocketServer } from "ws";
 import { Hub } from "./rooms.js";
 import { store } from "./store.js";
 import { createStaticHandler } from "./static.js";
+import { startMdns } from "./mdns.js";
 
 const PORT = Number(process.env.PORT ?? 8787);
 const SERVER_NAME = process.env.LW_SERVER_NAME ?? "LW Translator Server";
@@ -323,4 +324,13 @@ server.listen(PORT, "0.0.0.0", async () => {
       : `  no app bundle in ${STATIC_DIR} (API + signaling only)`,
   );
   for (const address of lanAddresses()) console.log(`  http://${address}/`);
+
+  if (process.env.LW_MDNS !== "off") {
+    try {
+      const mdns = await startMdns({ port: PORT, instance: SERVER_NAME });
+      console.log(`  advertising http://${mdns.hostname}:${PORT}/ via mDNS`);
+    } catch {
+      console.log("  mDNS advertisement unavailable (port 5353 in use) — use the IP address");
+    }
+  }
 });
