@@ -48,3 +48,34 @@ audio flows directly between the translator device and each listener over the
 private Wi-Fi, so no media ever leaves the LAN and latency stays low. When a
 translator goes live the server pairs it with every waiting listener
 (`subscriber-joined` / `publisher-live`) so negotiation starts immediately.
+
+## Hosting the app itself (Phase 4)
+
+The server can serve the built PWA so phones need nothing but the venue Wi-Fi:
+
+```bash
+npm run build          # in the project root
+cd server && npm run bundle   # copies the build into server/public
+npm start
+```
+
+Override the folder with `LW_STATIC_DIR=/path/to/build`. Unknown paths fall back
+to `index.html` so deep links like `/listen/ABC123` work offline.
+
+## Automatic discovery (mDNS)
+
+On start the server advertises itself on the LAN:
+
+- hostname `lw-translator.local`
+- service `_lwtranslator._tcp` on port 8787
+
+Phones and the Android shell find it without typing an IP address. If UDP 5353
+is unavailable (another mDNS daemon), the server keeps running and you enter the
+printed `host:port` manually. Disable with `LW_MDNS=off`.
+
+## Venue checklist
+
+1. Wi-Fi router powered on, no internet needed.
+2. Laptop/mini-PC joined to that Wi-Fi, `npm start` running.
+3. Translator phone opens the app, picks its language, taps Go live.
+4. Audience phones scan the conference QR code and pick a language.

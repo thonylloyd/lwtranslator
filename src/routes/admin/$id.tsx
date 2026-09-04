@@ -151,7 +151,9 @@ function ConferenceDetail() {
                     {language.flag} {language.name}
                   </p>
                   <div className="flex items-center gap-2">
-                    <StatusPill status={live.channelState(channel.id)?.live ? "live" : channel.status} />
+                    <StatusPill
+                      status={live.channelState(channel.id)?.live ? "live" : channel.status}
+                    />
                     <Button
                       variant="ghost"
                       size="icon"

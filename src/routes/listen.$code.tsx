@@ -98,7 +98,9 @@ function ListenPage() {
                       </span>
                     </span>
                   </span>
-                  <StatusPill status={live.channelState(channel.id)?.live ? "live" : channel.status} />
+                  <StatusPill
+                    status={live.channelState(channel.id)?.live ? "live" : channel.status}
+                  />
                 </button>
               );
             })}

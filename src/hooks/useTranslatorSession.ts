@@ -3,6 +3,8 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import type { Channel, Conference } from "@/lib/types";
 import { AudioManager } from "@/services/audio/AudioManager";
 import { LocalServerService } from "@/services/local-server/LocalServerService";
+import { NativeBridge } from "@/services/native/NativeBridge";
+
 import { webRTCClient } from "@/services/webrtc/WebRTCClient";
 
 import { useConnection } from "./useConnection";
@@ -56,6 +58,9 @@ export function useTranslatorSession(
     const { supported } = await webRTCClient.publish(channel.id, channel.languageCode, stream);
     setTransportReady(supported);
     setBroadcastState("live");
+    // On the Android shell this keeps the mic alive with the screen off.
+    NativeBridge.startAudioSession("translator");
+    NativeBridge.keepAwake(true);
     return true;
   }, [audio, channel, conference, requestMic]);
 
@@ -70,6 +75,8 @@ export function useTranslatorSession(
   const stopBroadcast = useCallback(async () => {
     if (channel) await webRTCClient.stop(channel.id);
     audio.releaseMicrophone();
+    NativeBridge.stopAudioSession();
+    NativeBridge.keepAwake(false);
     setBroadcastState("idle");
     setTransportReady(false);
     setLevel(0);
