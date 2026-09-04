@@ -82,7 +82,6 @@ export function useTranslatorSession(
     setLevel(0);
   }, [audio, channel]);
 
-
   return {
     connection,
     broadcastState,

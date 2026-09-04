@@ -30,7 +30,6 @@ function withDefaultPort(host: string): string[] {
 // `window.LWNative` is declared once in src/services/native/NativeBridge.ts.
 import "../native/NativeBridge";
 
-
 function isBrowser() {
   return typeof window !== "undefined";
 }

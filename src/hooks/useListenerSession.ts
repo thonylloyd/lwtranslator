@@ -71,7 +71,6 @@ export function useListenerSession(conference: Conference | undefined) {
     setAudioReady(false);
   }, [audio, channel]);
 
-
   const switchLanguage = useCallback(
     async (code: string) => {
       if (listening) await disconnect();
