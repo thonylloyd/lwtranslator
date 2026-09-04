@@ -23,8 +23,8 @@ const candidates = [
 async function findBuild() {
   for (const dir of candidates) {
     try {
-      const info = await stat(path.join(dir, "index.html"));
-      if (info.isFile()) return dir;
+      const info = await stat(dir);
+      if (info.isDirectory()) return dir;
     } catch {
       // try the next candidate
     }
