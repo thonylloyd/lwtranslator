@@ -46,4 +46,18 @@ await mkdir(target, { recursive: true });
 await cp(source, target, { recursive: true });
 
 console.log(`Bundled app from ${source} -> ${target}`);
-console.log("Start the venue server with `npm start` and open http://lw-translator.local:8787/");
+
+// The app is server-rendered, so the build has no index.html. In that case the
+// venue server hosts the static assets while the page HTML comes from the app
+// build itself (`node dist/server/index.mjs`) or from the published URL.
+try {
+  await stat(path.join(target, "index.html"));
+  console.log("Start the venue server with `npm start` and open http://lw-translator.local:8787/");
+} catch {
+  console.log(
+    "Note: this build is server-rendered (no index.html), so the venue server hosts\n" +
+      "assets, the conference API and signaling. Serve the page itself from the app\n" +
+      "build (`node dist/server/index.mjs`) on the same machine.",
+  );
+}
+
