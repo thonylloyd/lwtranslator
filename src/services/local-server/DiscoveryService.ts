@@ -27,11 +27,9 @@ function withDefaultPort(host: string): string[] {
   return host.includes(":") ? [host] : [host, `${host}:${DEFAULT_PORT}`];
 }
 
-declare global {
-  interface Window {
-    LWNative?: { getServerHost?: () => string | null };
-  }
-}
+// `window.LWNative` is declared once in src/services/native/NativeBridge.ts.
+import "../native/NativeBridge";
+
 
 function isBrowser() {
   return typeof window !== "undefined";
