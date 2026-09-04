@@ -3,6 +3,8 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import type { Channel, Conference } from "@/lib/types";
 import { AudioManager } from "@/services/audio/AudioManager";
 import { LocalServerService } from "@/services/local-server/LocalServerService";
+import { NativeBridge } from "@/services/native/NativeBridge";
+
 import { webRTCClient } from "@/services/webrtc/WebRTCClient";
 
 import { useConnection } from "./useConnection";
