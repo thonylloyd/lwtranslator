@@ -199,8 +199,19 @@ wss.on("connection", (socket) => {
       }
 
       case "publish": {
-        const channel = hub.publish(peer, message.channelId, message.languageCode);
-        if (!channel) break;
+        const result = hub.publish(peer, message.channelId, message.languageCode);
+        if (!result) break;
+        const { channel, accepted, reason } = result;
+        if (!accepted) {
+          // Another translator already owns this language channel.
+          send(peer, {
+            type: "publish-ack",
+            channelId: channel.id,
+            accepted: false,
+            reason: reason ?? "channel-busy",
+          });
+          break;
+        }
         send(peer, { type: "publish-ack", channelId: channel.id, accepted: true });
         // Tell the already-waiting audience that a translator is live, and hand
         // the translator every existing subscriber so it can offer media.
@@ -211,6 +222,7 @@ wss.on("connection", (socket) => {
         announceChannel(channel, peer.room);
         break;
       }
+
 
       case "subscribe": {
         const channel = hub.subscribe(peer, message.channelId, message.languageCode);
