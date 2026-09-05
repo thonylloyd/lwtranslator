@@ -81,10 +81,16 @@ export class Hub {
   publish(peer, channelId, languageCode) {
     if (!peer.room) return null;
     const channel = peer.room.channel(channelId, languageCode);
+    // One translator per language channel. A second translator is refused so a
+    // live channel can never be hijacked mid-session.
+    if (channel.publisher && channel.publisher !== peer) {
+      return { channel, accepted: false, reason: "channel-busy" };
+    }
     channel.publisher = peer;
     peer.published.add(channel.id);
-    return channel;
+    return { channel, accepted: true };
   }
+
 
   subscribe(peer, channelId, languageCode) {
     if (!peer.room) return null;
