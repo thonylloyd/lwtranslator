@@ -163,6 +163,16 @@ function ListenPage() {
             </div>
           </div>
 
+          {session.resuming && (
+            <div className="panel flex items-center gap-3 border-primary/40 p-4">
+              <RefreshCw className="size-4 shrink-0 animate-spin text-primary" />
+              <p className="text-xs text-muted-foreground">
+                Connection dropped — rejoining {languageByCode(selected?.languageCode ?? "").name}{" "}
+                automatically.
+              </p>
+            </div>
+          )}
+
           {!session.audioReady && (
             <div className="panel flex items-start gap-3 border-ready/40 p-4">
               <AlertTriangle className="mt-0.5 size-4 shrink-0 text-ready" />
@@ -174,10 +184,39 @@ function ListenPage() {
             </div>
           )}
 
+          <div className="space-y-2">
+            <p className="text-eyebrow">Switch language</p>
+            <div className="flex flex-wrap gap-2">
+              {conference.channels.map((channel) => {
+                const language = languageByCode(channel.languageCode);
+                const active = channel.languageCode === selected?.languageCode;
+                return (
+                  <button
+                    key={channel.id}
+                    type="button"
+                    onClick={() => void session.switchLanguage(channel.languageCode)}
+                    className={`flex items-center gap-2 rounded-full border px-3 py-2 text-sm transition-colors ${
+                      active
+                        ? "border-primary bg-primary/10 text-foreground"
+                        : "border-border text-muted-foreground hover:border-primary/50"
+                    }`}
+                  >
+                    <span aria-hidden>{language.flag}</span>
+                    {language.name}
+                    {live.channelState(channel.id)?.live && (
+                      <span className="size-1.5 rounded-full bg-live" aria-label="live" />
+                    )}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
           <div className="grid gap-2 sm:grid-cols-2">
             <Button variant="secondary" onClick={() => void session.disconnect()}>
-              <RefreshCw className="mr-2 size-4" /> Change language
+              <RefreshCw className="mr-2 size-4" /> Back to languages
             </Button>
+
             <Button variant="destructive" onClick={() => void session.disconnect()}>
               Stop listening
             </Button>

@@ -20,7 +20,7 @@ export type ServerSignal =
       conference: Conference | null;
       channels: { channelId: string; languageCode: string; live: boolean; listeners: number }[];
     }
-  | { type: "publish-ack"; channelId: string; accepted: boolean }
+  | { type: "publish-ack"; channelId: string; accepted: boolean; reason?: string }
   | { type: "subscribe-ack"; channelId: string; live: boolean; listeners: number }
   | {
       type: "channel-state";
