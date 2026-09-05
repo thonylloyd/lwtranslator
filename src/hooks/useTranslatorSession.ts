@@ -56,6 +56,25 @@ export function useTranslatorSession(
     const stream = audio.getMicStream() ?? (await requestMic().then(() => audio.getMicStream()));
     if (!stream) return false;
     const { supported } = await webRTCClient.publish(channel.id, channel.languageCode, stream);
+
+    // The venue server allows exactly one translator per language channel, so a
+    // second translator is refused instead of taking over a live channel.
+    const signaling = LocalServerService.getSignaling();
+    if (signaling) {
+      const off = signaling.onMessage((message) => {
+        if (message.type !== "publish-ack" || message.channelId !== channel.id) return;
+        off();
+        if (message.accepted) return;
+        void webRTCClient.stop(channel.id);
+        audio.setMicMuted(true);
+        setMicError("Another translator is already live on this language channel.");
+        setBroadcastState("ready");
+        setTransportReady(false);
+      });
+      if (typeof window !== "undefined") window.setTimeout(off, 5000);
+    }
+
+    setMicError(null);
     setTransportReady(supported);
     setBroadcastState("live");
     // On the Android shell this keeps the mic alive with the screen off.
@@ -63,6 +82,7 @@ export function useTranslatorSession(
     NativeBridge.keepAwake(true);
     return true;
   }, [audio, channel, conference, requestMic]);
+
 
   const setMuted = useCallback(
     (muted: boolean) => {
