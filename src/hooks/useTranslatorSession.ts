@@ -83,7 +83,6 @@ export function useTranslatorSession(
     return true;
   }, [audio, channel, conference, requestMic]);
 
-
   const setMuted = useCallback(
     (muted: boolean) => {
       audio.setMicMuted(muted);

@@ -91,7 +91,6 @@ export class Hub {
     return { channel, accepted: true };
   }
 
-
   subscribe(peer, channelId, languageCode) {
     if (!peer.room) return null;
     const channel = peer.room.channel(channelId, languageCode);

@@ -79,3 +79,24 @@ printed `host:port` manually. Disable with `LW_MDNS=off`.
 2. Laptop/mini-PC joined to that Wi-Fi, `npm start` running.
 3. Translator phone opens the app, picks its language, taps Go live.
 4. Audience phones scan the conference QR code and pick a language.
+
+## Multiple Wi-Fi access points
+
+Large venues need more than one access point. Keep them all on the **same**
+network (same subnet, one DHCP server, identical SSID and password, different
+channels). Phones then keep the same server address as people walk between
+areas, so translation keeps playing without rejoining. The admin screen lists
+the addresses the server is reachable on — check them from a phone at each end
+of the venue before the event.
+
+## Load check
+
+With the server running:
+
+```bash
+node scripts/load-test.js 60
+```
+
+It connects one translator plus 60 listeners on one channel, confirms every
+listener is paired, confirms a second translator on the same channel is refused,
+and prints the signaling round-trip time.

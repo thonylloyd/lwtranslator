@@ -1,4 +1,4 @@
-import type { Conference, ServerInfo } from "@/lib/types";
+import type { Conference, ServerHealth, ServerInfo } from "@/lib/types";
 
 import { DiscoveryService } from "./DiscoveryService";
 import { SignalingService } from "./SignalingService";
@@ -66,6 +66,23 @@ class LocalServerServiceImpl {
     const info = await DiscoveryService.probe(host ?? "lw-translator.local");
     this.info = info;
     return info;
+  }
+
+  /**
+   * Full `/health` report from the venue server: connected devices, uptime,
+   * live channels and the LAN addresses it is reachable on (used by the admin
+   * monitoring panel). Returns null when no server answers.
+   */
+  async healthReport(): Promise<ServerHealth | null> {
+    const base = this.baseUrl();
+    if (!base) return null;
+    try {
+      const res = await fetch(`${base}/health`, { cache: "no-store" });
+      if (!res.ok) return null;
+      return (await res.json()) as ServerHealth;
+    } catch {
+      return null;
+    }
   }
 
   /** Round-trip latency to the venue server, or null when not connected. */

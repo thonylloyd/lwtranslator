@@ -11,6 +11,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { LANGUAGES, languageByCode } from "@/lib/types";
 import { useConference } from "@/hooks/useConferences";
+import { useServerHealth } from "@/hooks/useServerHealth";
 import { useLiveChannels } from "@/hooks/useLiveChannels";
 import { randomId } from "@/services/data/conferenceStore";
 
@@ -38,13 +39,15 @@ function ConferenceDetail() {
   const { conference, repository } = useConference(id);
   const live = useLiveChannels(conference?.code);
   const connection = live.connection;
+  const health = useServerHealth();
   const [joinUrl, setJoinUrl] = useState("");
   const [newLanguage, setNewLanguage] = useState("");
 
   useEffect(() => {
     if (typeof window === "undefined" || !conference) return;
-    setJoinUrl(`${window.location.origin}/listen/${conference.code}`);
-  }, [conference]);
+    const host = connection.simulated ? window.location.host : connection.serverHost;
+    setJoinUrl(`http://${host ?? window.location.host}/listen/${conference.code}`);
+  }, [conference, connection.serverHost, connection.simulated]);
 
   if (!conference) {
     return (
@@ -246,6 +249,11 @@ function ConferenceDetail() {
           <Stat label="Local server" value={connection.simulated ? "Offline" : "Online"} />
           <Stat label="Active channels" value={String(liveChannels)} />
           <Stat
+            label="Connected devices"
+            value={health ? String(health.connectedPeers) : String(totalListeners)}
+          />
+          <Stat label="Server uptime" value={health ? formatUptime(health.uptimeSeconds) : "—"} />
+          <Stat
             label="Avg latency"
             value={connection.latencyMs ? `${connection.latencyMs} ms` : "—"}
           />
@@ -262,6 +270,13 @@ function ConferenceDetail() {
             Connection <QualityLabel quality={connection.quality} />
           </span>
         </div>
+        {health && health.addresses.length > 0 && (
+          <p className="text-xs text-muted-foreground">
+            Reachable on this network at {health.addresses.join(", ")}. On venues with several Wi-Fi
+            access points, keep every access point on the same network so these addresses stay valid
+            as attendees move between them.
+          </p>
+        )}
         {connection.simulated && (
           <p className="text-xs text-muted-foreground">
             No local LW Translator server detected. Metrics shown are demonstration values; they
@@ -271,6 +286,13 @@ function ConferenceDetail() {
       </section>
     </AppShell>
   );
+}
+
+function formatUptime(seconds: number) {
+  if (seconds < 60) return `${seconds}s`;
+  const minutes = Math.floor(seconds / 60);
+  if (minutes < 60) return `${minutes}m`;
+  return `${Math.floor(minutes / 60)}h ${minutes % 60}m`;
 }
 
 function Stat({ label, value }: { label: string; value: string }) {

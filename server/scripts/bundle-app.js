@@ -60,4 +60,3 @@ try {
       "build (`node dist/server/index.mjs`) on the same machine.",
   );
 }
-
