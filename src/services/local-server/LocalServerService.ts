@@ -1,4 +1,4 @@
-import type { Conference, ServerInfo } from "@/lib/types";
+import type { Conference, ServerHealth, ServerInfo } from "@/lib/types";
 
 import { DiscoveryService } from "./DiscoveryService";
 import { SignalingService } from "./SignalingService";

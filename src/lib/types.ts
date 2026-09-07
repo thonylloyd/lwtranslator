@@ -50,6 +50,18 @@ export interface ServerInfo {
   simulated: boolean;
 }
 
+/** `/health` report from the venue server (live, non-persistent). */
+export interface ServerHealth {
+  name: string;
+  version: string;
+  uptimeSeconds: number;
+  addresses: string[];
+  appHosted: boolean;
+  conferences: number;
+  connectedPeers: number;
+  liveChannels: number;
+}
+
 export const LANGUAGES: LanguageOption[] = [
   { code: "en", name: "English", flag: "🇬🇧" },
   { code: "fr", name: "French", flag: "🇫🇷" },
