@@ -68,6 +68,23 @@ class LocalServerServiceImpl {
     return info;
   }
 
+  /**
+   * Full `/health` report from the venue server: connected devices, uptime,
+   * live channels and the LAN addresses it is reachable on (used by the admin
+   * monitoring panel). Returns null when no server answers.
+   */
+  async healthReport(): Promise<ServerHealth | null> {
+    const base = this.baseUrl();
+    if (!base) return null;
+    try {
+      const res = await fetch(`${base}/health`, { cache: "no-store" });
+      if (!res.ok) return null;
+      return (await res.json()) as ServerHealth;
+    } catch {
+      return null;
+    }
+  }
+
   /** Round-trip latency to the venue server, or null when not connected. */
   latency() {
     return this.signaling?.measureLatency() ?? Promise.resolve(null);
