@@ -223,7 +223,6 @@ wss.on("connection", (socket) => {
         break;
       }
 
-
       case "subscribe": {
         const channel = hub.subscribe(peer, message.channelId, message.languageCode);
         if (!channel) break;
