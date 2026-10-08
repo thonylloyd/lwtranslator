@@ -53,6 +53,13 @@ export class WebAudioService implements AudioService {
 
   async requestMicrophone(): Promise<MicPermissionResult> {
     if (!this.isSupported()) {
+      if (typeof window !== "undefined" && !window.isSecureContext) {
+        const host = window.location.hostname;
+        return {
+          granted: false,
+          error: `Phones only allow the microphone on a secure address. Open https://${host}:8443/ instead (accept the security warning once), then try again.`,
+        };
+      }
       return { granted: false, error: "Microphone capture is not available on this device." };
     }
     try {

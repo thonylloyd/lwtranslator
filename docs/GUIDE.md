@@ -56,6 +56,8 @@ It prints something like:
 LW Translator Server v1.0.0 listening on port 8787
   http://192.168.1.20:8787/
   advertising http://lw-translator.local:8787/ via mDNS
+  Secure address (needed for translator microphones):
+  https://192.168.1.20:8443/
 ```
 
 Write down that address (`192.168.1.20:8787` in the example) — it is the only
@@ -152,3 +154,10 @@ translators who need the screen off.
 | Listener hears nothing | Check the translator is showing "Live", and that the listener picked that same language |
 | Echo in the room | Someone is listening on a phone speaker instead of earphones |
 | Translator cannot go live | Another translator already owns that language; pick a different one |
+
+### Translators: use the secure address
+
+Phones only let a web page use the microphone over a secure link. Translators
+must open **https://<computer-address>:8443/** (for example
+`https://192.168.0.156:8443/`). The first time, the phone shows a security
+warning — tap **Advanced → Proceed**. This is safe: it is your own venue computer.

@@ -96,6 +96,18 @@ class MainActivity : AppCompatActivity() {
                 view.evaluateJavascript(NativeBridge.INSTALL_SCRIPT, null)
             }
 
+            // The venue server uses its own certificate; trust it only on the local network.
+            override fun onReceivedSslError(
+                view: WebView,
+                handler: android.webkit.SslErrorHandler,
+                error: android.net.http.SslError,
+            ) {
+                val host = Uri.parse(error.url).host ?: ""
+                val local = host.endsWith(".local") || host == "localhost" ||
+                    Regex("""^(10|192\.168|172\.(1[6-9]|2\d|3[01]))\..*""").matches(host)
+                if (local) handler.proceed() else handler.cancel()
+            }
+
             override fun shouldOverrideUrlLoading(
                 view: WebView,
                 request: WebResourceRequest,
