@@ -2,13 +2,14 @@ import { createServer } from "node:http";
 import { networkInterfaces } from "node:os";
 import { randomUUID } from "node:crypto";
 import { fileURLToPath } from "node:url";
-import { dirname, resolve } from "node:path";
+import { dirname, extname, resolve } from "node:path";
 
 import { WebSocketServer } from "ws";
 
 import { Hub } from "./rooms.js";
 import { store } from "./store.js";
 import { createStaticHandler } from "./static.js";
+import { createPageRenderer } from "./ssr.js";
 import { startMdns } from "./mdns.js";
 
 const PORT = Number(process.env.PORT ?? 8787);
@@ -20,6 +21,11 @@ const HERE = dirname(fileURLToPath(import.meta.url));
 /** Built PWA served to phones on the venue Wi-Fi (no internet needed). */
 const STATIC_DIR = resolve(process.env.LW_STATIC_DIR ?? resolve(HERE, "../public"));
 const serveStatic = createStaticHandler(STATIC_DIR);
+/** The app's server build, which renders each page (copied by `npm run bundle`). */
+const APP_SERVER_ENTRY = resolve(
+  process.env.LW_APP_SERVER ?? resolve(HERE, "../app-server/index.mjs"),
+);
+const pages = createPageRenderer(APP_SERVER_ENTRY);
 
 const hub = new Hub();
 
@@ -131,9 +137,28 @@ const server = createServer(async (req, res) => {
     return json(res, 200, conference);
   }
 
-  // Anything else: the built PWA (index.html fallback keeps deep links working).
+  // Files with an extension (scripts, styles, icons) come straight from disk.
+  if (extname(url.pathname) && (await serveStatic(req, res, url.pathname))) return;
+
+  // App pages (/, /join, /listen/ABC123 …) are rendered by the bundled app.
+  try {
+    if (await pages.render(req, res, url)) return;
+  } catch (error) {
+    console.error("Page render failed:", error);
+  }
+
+  // Fallback for a single-page build that ships its own index.html.
   if (await serveStatic(req, res, url.pathname)) return;
 
+  if (req.method === "GET" && !url.pathname.startsWith("/api/")) {
+    res.writeHead(503, { "content-type": "text/html; charset=utf-8" });
+    res.end(
+      "<h1>LW Translator app not installed on this server</h1><p>On the venue computer run " +
+        "<code>npm run build</code> in the project folder, then <code>npm run bundle</code> " +
+        "inside <code>server</code>, and restart with <code>npm start</code>.</p>",
+    );
+    return;
+  }
   json(res, 404, { error: "not found" });
 });
 
