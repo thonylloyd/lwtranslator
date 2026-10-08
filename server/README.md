@@ -55,7 +55,7 @@ The server can serve the built PWA so phones need nothing but the venue Wi-Fi:
 
 ```bash
 npm run build          # in the project root
-cd server && npm run bundle   # copies the build into server/public
+cd server && npm run bundle   # copies the app (pages + files) into the server
 npm start
 ```
 
