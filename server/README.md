@@ -100,3 +100,11 @@ node scripts/load-test.js 60
 It connects one translator plus 60 listeners on one channel, confirms every
 listener is paired, confirms a second translator on the same channel is refused,
 and prints the signaling round-trip time.
+
+## Translator microphones need the secure address
+
+Phones only allow the microphone on `https://` pages. The server therefore also
+listens on **https://<server-ip>:8443/** using a certificate it creates on first
+start (`data/tls.json`). Translators open that address and accept the one-time
+"not secure / certificate" warning (Advanced → Proceed). Listeners can use
+either address. Change the port with `HTTPS_PORT`, disable with `LW_HTTPS=off`.
