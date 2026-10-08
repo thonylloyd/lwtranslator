@@ -62,6 +62,7 @@ let hostsApp = false;
 
 /** True when the built PWA has been copied next to the server. */
 async function appIsBundled() {
+  if (await pages.available()) return true;
   try {
     const { stat } = await import("node:fs/promises");
     const info = await stat(resolve(STATIC_DIR, "index.html"));
