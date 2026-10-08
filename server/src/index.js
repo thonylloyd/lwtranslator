@@ -1,4 +1,5 @@
 import { createServer } from "node:http";
+import { createServer as createHttpsServer } from "node:https";
 import { networkInterfaces } from "node:os";
 import { randomUUID } from "node:crypto";
 import { fileURLToPath } from "node:url";
@@ -11,8 +12,10 @@ import { store } from "./store.js";
 import { createStaticHandler } from "./static.js";
 import { createPageRenderer } from "./ssr.js";
 import { startMdns } from "./mdns.js";
+import { loadOrCreateCertificate } from "./tls.js";
 
 const PORT = Number(process.env.PORT ?? 8787);
+const HTTPS_PORT = Number(process.env.HTTPS_PORT ?? 8443);
 const SERVER_NAME = process.env.LW_SERVER_NAME ?? "LW Translator Server";
 const VERSION = "1.0.0";
 const STARTED_AT = Date.now();
@@ -79,7 +82,7 @@ function lanAddresses() {
     .map((i) => `${i.address}:${PORT}`);
 }
 
-const server = createServer(async (req, res) => {
+async function handleRequest(req, res) {
   const url = new URL(req.url ?? "/", `http://${req.headers.host ?? "localhost"}`);
 
   if (req.method === "OPTIONS") {
@@ -161,11 +164,14 @@ const server = createServer(async (req, res) => {
     return;
   }
   json(res, 404, { error: "not found" });
-});
+}
+
+const server = createServer(handleRequest);
 
 /* -------------------------------------------------------------- Signaling */
 
 const wss = new WebSocketServer({ server, path: "/signal" });
+wss.on("connection", onConnection);
 
 function send(peer, message) {
   if (peer.socket.readyState === peer.socket.OPEN) {
@@ -191,7 +197,7 @@ function announceChannel(channel, room) {
   });
 }
 
-wss.on("connection", (socket) => {
+function onConnection(socket) {
   const peer = {
     id: randomUUID(),
     socket,
@@ -335,7 +341,7 @@ wss.on("connection", (socket) => {
     const touched = hub.leave(peer);
     if (room) for (const channel of touched) announceChannel(channel, room);
   });
-});
+}
 
 /* ----------------------------------------------------------- Stats ticker */
 
@@ -361,6 +367,22 @@ server.listen(PORT, "0.0.0.0", async () => {
       : `  no app bundle in ${STATIC_DIR} (API + signaling only)`,
   );
   for (const address of lanAddresses()) console.log(`  http://${address}/`);
+
+  if (process.env.LW_HTTPS !== "off") {
+    try {
+      const tls = await loadOrCreateCertificate(resolve(HERE, "../data/tls.json"));
+      const secure = createHttpsServer(tls, handleRequest);
+      new WebSocketServer({ server: secure, path: "/signal" }).on("connection", onConnection);
+      secure.listen(HTTPS_PORT, "0.0.0.0", () => {
+        console.log(`  Secure address (needed for translator microphones):`);
+        for (const address of lanAddresses()) {
+          console.log(`  https://${address.replace(`:${PORT}`, `:${HTTPS_PORT}`)}/`);
+        }
+      });
+    } catch (error) {
+      console.log("  HTTPS unavailable:", error.message);
+    }
+  }
 
   if (process.env.LW_MDNS !== "off") {
     try {
