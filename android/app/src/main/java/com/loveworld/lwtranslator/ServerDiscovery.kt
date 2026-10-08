@@ -22,7 +22,8 @@ class ServerDiscovery(context: Context, private val defaultPort: Int) {
 
     fun serverHost(): String? = resolved.get()
 
-    fun appUrl(): String? = resolved.get()?.let { "http://$it/" }
+    /** Secure address (port 8443) so the WebView may use the microphone. */
+    fun appUrl(): String? = resolved.get()?.let { "https://${it.substringBeforeLast(":")}:8443/" }
 
     fun start() {
         if (listener != null) return

@@ -16,7 +16,7 @@ android {
 
         // Where the shell loads the PWA from. At a venue the local server hosts
         // the app itself, so discovery normally overrides this at runtime.
-        buildConfigField("String", "DEFAULT_APP_URL", "\"http://lw-translator.local:8787/\"")
+        buildConfigField("String", "DEFAULT_APP_URL", "\"https://lw-translator.local:8443/\"")
         buildConfigField("int", "SERVER_PORT", "8787")
     }
 
